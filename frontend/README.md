@@ -64,3 +64,14 @@ cd frontend
 pnpm install
 pnpm run dev
 ```
+
+---
+
+## 🔐 Credenciales de Acceso
+
+> Usa estas credenciales para iniciar sesión en el sistema según el rol requerido.
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| 🛡️ **Administrador** | `admin@turing.com` | `@admin1234` |
+| 👤 **Agente Operativo** | `user@turing.com` | `@admin4321` |
