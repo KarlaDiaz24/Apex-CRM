@@ -17,47 +17,89 @@ export default function AuditView() {
     fetchLogs();
   }, []);
 
-  return (
-    <div className="admin-view-container">
-      <h2 className="admin-view-title">
-        Auditoría y Trazabilidad del Sistema
-      </h2>
-      <p className="admin-view-desc">
-        Registro automatizado de todas las acciones críticas realizadas por los usuarios en el CRM.
-      </p>
+  const getActionBadgeClass = (action = '') => {
+    const act = action.toUpperCase();
+    if (act.includes('CREAR') || act.includes('INSERT') || act.includes('POST')) {
+      return 'badge-create';
+    }
+    if (act.includes('ELIMINAR') || act.includes('DELETE') || act.includes('TRASH')) {
+      return 'badge-delete';
+    }
+    if (act.includes('ACTUALIZAR') || act.includes('UPDATE') || act.includes('PUT')) {
+      return 'badge-update';
+    }
+    return 'badge-default';
+  };
 
-      {/* Tabla de Auditoría */}
-      <div className="table-responsive">
-        <table className="data-table">
-          <thead>
-            <tr className="data-table-header">
-              <th className="data-table-th">ID</th>
-              <th className="data-table-th">Usuario</th>
-              <th className="data-table-th">Acción</th>
-              <th className="data-table-th">Detalles</th>
-              <th className="data-table-th">Fecha / Hora</th>
-            </tr>
-          </thead>
-          <tbody>
-            {logs.length === 0 ? (
-              <tr><td colSpan="5" className="data-table-empty">No hay registros de auditoría.</td></tr>
-            ) : (
-              logs.map((log) => (
-                <tr key={log.id} className="data-table-tr">
-                  <td className="data-table-td">{log.id}</td>
-                  <td className="data-table-td-bold">{log.user_name || 'Sistema / Desconocido'}</td>
-                  <td className="data-table-td">
-                    <span className="audit-action-badge">
-                      {log.action}
-                    </span>
-                  </td>
-                  <td className="data-table-td">{log.details}</td>
-                  <td className="data-table-td">{new Date(log.created_at).toLocaleString()}</td>
+  return (
+    <div className="audit-page-container">
+      {/* Encabezado */}
+      <div className="audit-header">
+        <h2 className="audit-title">
+          Auditoría y Trazabilidad del Sistema
+        </h2>
+        <p className="audit-subtitle">
+          Registro automatizado de todas las acciones críticas realizadas por los usuarios en el CRM Enterprise.
+        </p>
+      </div>
+
+      {/* Contenedor Elegante */}
+      <div className="audit-container-card">
+        <div className="audit-list-header">
+          <h3 className="audit-list-title">
+            Bitácora de Actividad 
+            <span className="audit-count-badge">
+              {logs.length}
+            </span>
+          </h3>
+        </div>
+
+        <div className="audit-table-card">
+          <div className="audit-table-scroll">
+            <table className="audit-table">
+              <thead>
+                <tr className="audit-table-thead-tr">
+                  <th className="audit-table-th">ID</th>
+                  <th className="audit-table-th">Usuario</th>
+                  <th className="audit-table-th">Acción</th>
+                  <th className="audit-table-th">Detalles</th>
+                  <th className="audit-table-th">Fecha / Hora</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {logs.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="audit-empty-cell">
+                      No hay registros de auditoría disponibles.
+                    </td>
+                  </tr>
+                ) : (
+                  logs.map((log) => (
+                    <tr key={log.id} className="audit-row">
+                      <td className="audit-td-id">
+                        #{log.id}
+                      </td>
+                      <td className="audit-td-user">
+                        👤 {log.user_name || 'Sistema / Desconocido'}
+                      </td>
+                      <td className="audit-td-action">
+                        <span className={`audit-badge ${getActionBadgeClass(log.action)}`}>
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="audit-td-details">
+                        {log.details || 'Sin detalles adicionales'}
+                      </td>
+                      <td className="audit-td-date">
+                        {log.created_at ? new Date(log.created_at).toLocaleString() : 'N/D'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

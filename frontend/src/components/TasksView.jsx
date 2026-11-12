@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import Modal from './Modal';
 
 export default function TasksView() {
   const [tasks, setTasks] = useState([]);
@@ -9,10 +10,24 @@ export default function TasksView() {
   const [dueDate, setDueDate] = useState('');
   const [assignedTo, setAssignedTo] = useState('Administrador (admin)');
   const [clientId, setClientId] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
+  const [pendingTaskId, setPendingTaskId] = useState(null);
+
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: '',
+    confirmText: 'Aceptar',
+    cancelText: 'Cancelar',
+    showCancel: false,
+    onConfirm: null,
+  });
+
+  const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
+
+  const showModal = (config) => setModalConfig({ ...modalConfig, isOpen: true, showCancel: false, ...config });
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -41,11 +56,15 @@ export default function TasksView() {
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
 
     if (!title || !dueDate) {
-      setError('Por favor completa el título y la fecha límite.');
+      showModal({
+        type: 'warning',
+        title: 'Campos Requeridos',
+        message: 'Por favor completa el título y la fecha límite antes de confirmar.',
+        confirmText: 'Entendido',
+        onConfirm: closeModal,
+      });
       return;
     }
 
@@ -54,29 +73,68 @@ export default function TasksView() {
       await api.post('/tasks', {
         title,
         description,
-        due_date: dueDate, // Asegurando el nombre de columna correcto que usa tu backend
-        user_id: 1, // Ajusta si manejas el id del usuario dinámico
+        due_date: dueDate,
+        user_id: 1,
         client_id: clientId ? Number(clientId) : null
       });
-      setSuccess('¡Actividad agendada con éxito!');
       setTitle('');
       setDescription('');
       setDueDate('');
       setClientId('');
       fetchTasks();
+      showModal({
+        type: 'success',
+        title: '¡Actividad Agendada!',
+        message: 'La tarea fue registrada correctamente en la agenda operativa.',
+        confirmText: 'Aceptar',
+        onConfirm: closeModal,
+      });
     } catch (err) {
-      setError('Error al crear la tarea. Intenta de nuevo.');
+      showModal({
+        type: 'danger',
+        title: 'Error al Crear Tarea',
+        message: 'No se pudo registrar la tarea. Verifica la conexión e intenta de nuevo.',
+        confirmText: 'Cerrar',
+        onConfirm: closeModal,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCompleteTask = async (id) => {
+  const handleCompleteTask = (id) => {
+    setPendingTaskId(id);
+    showModal({
+      type: 'info',
+      title: 'Completar Tarea',
+      message: '¿Deseas marcar esta tarea como completada? Esta acción la moverá al historial.',
+      confirmText: 'Sí, completar',
+      cancelText: 'Cancelar',
+      showCancel: true,
+      onConfirm: () => confirmComplete(id),
+    });
+  };
+
+  const confirmComplete = async (id) => {
+    closeModal();
     try {
       await api.put(`/tasks/${id}/complete`);
       fetchTasks();
+      showModal({
+        type: 'success',
+        title: '¡Tarea Completada!',
+        message: 'La actividad fue marcada como finalizada y movida al historial.',
+        confirmText: 'Aceptar',
+        onConfirm: closeModal,
+      });
     } catch (err) {
-      console.error('Error al completar tarea', err);
+      showModal({
+        type: 'danger',
+        title: 'Error',
+        message: 'No se pudo completar la tarea. Intenta de nuevo.',
+        confirmText: 'Cerrar',
+        onConfirm: closeModal,
+      });
     }
   };
 
@@ -106,18 +164,6 @@ export default function TasksView() {
               Agendar Nueva Actividad
             </h3>
           </div>
-
-          {error && (
-            <div className="alert-error">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="alert-success">
-              {success}
-            </div>
-          )}
 
           <form onSubmit={handleCreateTask} className="vertical-form">
             <div>
@@ -300,6 +346,18 @@ export default function TasksView() {
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={modalConfig.isOpen}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText={modalConfig.confirmText}
+        cancelText={modalConfig.cancelText}
+        showCancel={modalConfig.showCancel}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={closeModal}
+      />
     </div>
   );
 }
