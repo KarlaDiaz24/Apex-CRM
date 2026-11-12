@@ -12,9 +12,8 @@ export default function TasksView() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('pending'); // 'pending' o 'completed'
+  const [activeTab, setActiveTab] = useState('pending');
 
-  // Obtener fecha actual en formato YYYY-MM-DD para bloquear días pasados
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -85,104 +84,13 @@ export default function TasksView() {
   const completedTasks = tasks.filter(t => t.completed);
 
   return (
-    <div style={{ padding: '35px 40px', maxWidth: '1400px', margin: '0 auto' }}>
-      <style>{`
-        .task-layout {
-          display: grid;
-          grid-template-columns: 400px 1fr;
-          gap: 30px;
-          align-items: start;
-        }
-        @media (max-width: 1024px) {
-          .task-layout {
-            grid-template-columns: 1fr;
-          }
-        }
-        .form-card {
-          background: #FFFFFF;
-          border-radius: 20px;
-          padding: 30px;
-          box-shadow: 0 10px 30px rgba(31, 46, 64, 0.08);
-          border: 1px solid #E2E8F0;
-        }
-        .tasks-container-card {
-          background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
-          border-radius: 20px;
-          padding: 30px;
-          border: 1px solid #E2E8F0;
-          box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .modern-input {
-          width: 100%;
-          padding: 12px 14px;
-          border-radius: 10px;
-          border: 1px solid #CBD5E1;
-          font-size: 14px;
-          color: #1F2E40;
-          background: #FFFFFF;
-          transition: all 0.2s ease;
-          box-sizing: border-box;
-        }
-        .modern-input:focus {
-          outline: none;
-          border-color: #025375;
-          box-shadow: 0 0 0 3px rgba(2, 83, 117, 0.15);
-        }
-        .task-item {
-          background: #FFFFFF;
-          border-radius: 14px;
-          padding: 22px;
-          margin-bottom: 16px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          box-shadow: 0 4px 20px rgba(31, 46, 64, 0.06);
-          border: 1px solid rgba(226, 232, 240, 0.8);
-          border-left: 5px solid #025375;
-          transition: all 0.25s ease;
-        }
-        .task-item.completed {
-          border-left-color: #10B981;
-          opacity: 0.85;
-          background: #F8FAFC;
-        }
-        .task-item:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(31, 46, 64, 0.1);
-        }
-        .btn-action {
-          background: linear-gradient(135deg, #025375 0%, #1F2E40 100%);
-          color: #FFFFFF;
-          border: none;
-          padding: 12px;
-          border-radius: 10px;
-          font-weight: 700;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          width: 100%;
-        }
-        .btn-action:hover {
-          opacity: 0.95;
-          box-shadow: 0 4px 15px rgba(2, 83, 117, 0.3);
-        }
-        .tab-btn {
-          padding: 8px 16px;
-          border-radius: 10px;
-          font-weight: 700;
-          font-size: 13px;
-          cursor: pointer;
-          border: none;
-          transition: all 0.2s ease;
-        }
-      `}</style>
-
+    <div className="tasks-page-container">
       {/* Encabezado de la Sección */}
-      <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#1F2E40', fontSize: '26px', fontWeight: '800', margin: '0 0 6px 0' }}>
+      <div className="tasks-header">
+        <h2 className="tasks-title">
           Agenda Operativa y Seguimientos
         </h2>
-        <p style={{ color: '#64748B', fontSize: '14px', margin: 0 }}>
+        <p className="tasks-subtitle">
           Organización de actividades comerciales, recordatorios y control de tareas asignadas.
         </p>
       </div>
@@ -190,33 +98,30 @@ export default function TasksView() {
       <div className="task-layout">
         {/* Columna Izquierda: Formulario Moderno para Agendar */}
         <div className="form-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <div style={{
-              width: '36px', height: '36px', background: 'rgba(2, 83, 117, 0.1)', color: '#025375',
-              borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
-            }}>
+          <div className="form-header">
+            <div className="form-header-icon">
               📅
             </div>
-            <h3 style={{ margin: 0, fontSize: '18px', color: '#1F2E40', fontWeight: '700' }}>
+            <h3 className="form-header-title">
               Agendar Nueva Actividad
             </h3>
           </div>
 
           {error && (
-            <div style={{ background: '#FEF2F2', color: '#DC2626', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px', fontWeight: '600', border: '1px solid #FCA5A5' }}>
+            <div className="alert-error">
               {error}
             </div>
           )}
 
           {success && (
-            <div style={{ background: '#F0FDF4', color: '#16A34A', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px', fontWeight: '600', border: '1px solid #BBF7D0' }}>
+            <div className="alert-success">
               {success}
             </div>
           )}
 
-          <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleCreateTask} className="vertical-form">
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
+              <label className="field-label">
                 Título de la Tarea *
               </label>
               <input 
@@ -230,7 +135,7 @@ export default function TasksView() {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
+              <label className="field-label">
                 Responsable *
               </label>
               <select 
@@ -244,7 +149,7 @@ export default function TasksView() {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
+              <label className="field-label">
                 Cliente Asociado
               </label>
               <select 
@@ -260,7 +165,7 @@ export default function TasksView() {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
+              <label className="field-label">
                 Fecha Límite *
               </label>
               <input 
@@ -274,7 +179,7 @@ export default function TasksView() {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
+              <label className="field-label">
                 Notas / Detalles
               </label>
               <textarea 
@@ -295,24 +200,16 @@ export default function TasksView() {
         {/* Columna Derecha: Pestañas de Pendientes e Historial Completado */}
         <div className="tasks-container-card">
           {/* Botones de Pestañas */}
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #CBD5E1', paddingBottom: '15px' }}>
+          <div className="tasks-tab-header">
             <button 
               onClick={() => setActiveTab('pending')}
-              className="tab-btn"
-              style={{
-                background: activeTab === 'pending' ? '#025375' : '#E2E8F0',
-                color: activeTab === 'pending' ? '#FFFFFF' : '#475569'
-              }}
+              className={`tab-btn ${activeTab === 'pending' ? 'active-pending' : ''}`}
             >
               Pendientes ({pendingTasks.length})
             </button>
             <button 
               onClick={() => setActiveTab('completed')}
-              className="tab-btn"
-              style={{
-                background: activeTab === 'completed' ? '#10B981' : '#E2E8F0',
-                color: activeTab === 'completed' ? '#FFFFFF' : '#475569'
-              }}
+              className={`tab-btn ${activeTab === 'completed' ? 'active-completed' : ''}`}
             >
               Historial Completadas ({completedTasks.length})
             </button>
@@ -322,9 +219,9 @@ export default function TasksView() {
           {activeTab === 'pending' ? (
             <>
               {pendingTasks.length === 0 ? (
-                <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '40px', textAlign: 'center', border: '1px dashed #CBD5E1', color: '#64748B' }}>
-                  <p style={{ margin: 0, fontSize: '15px', fontWeight: '500' }}>No hay tareas pendientes en este momento.</p>
-                  <span style={{ fontSize: '13px', color: '#94A3B8' }}>Crea una nueva actividad usando el formulario de la izquierda.</span>
+                <div className="tasks-empty-card">
+                  <p className="tasks-empty-title">No hay tareas pendientes en este momento.</p>
+                  <span className="tasks-empty-desc">Crea una nueva actividad usando el formulario de la izquierda.</span>
                 </div>
               ) : (
                 pendingTasks.map(task => {
@@ -333,24 +230,20 @@ export default function TasksView() {
 
                   return (
                     <div key={task.id} className="task-item">
-                      <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                        <div style={{
-                          background: 'linear-gradient(135deg, #025375 0%, #1F2E40 100%)', 
-                          color: '#FFFFFF', padding: '12px 14px', borderRadius: '12px',
-                          textAlign: 'center', minWidth: '105px', boxShadow: '0 4px 10px rgba(2, 83, 117, 0.2)'
-                        }}>
-                          <span style={{ fontSize: '9px', textTransform: 'uppercase', display: 'block', opacity: 0.8, fontWeight: '700' }}>Vence</span>
-                          <span style={{ fontSize: '13px', fontWeight: '800' }}>{formattedDate}</span>
+                      <div className="task-item-content">
+                        <div className="task-date-badge">
+                          <span className="task-date-label">Vence</span>
+                          <span className="task-date-value">{formattedDate}</span>
                         </div>
                         <div>
-                          <h4 style={{ margin: '0 0 4px 0', color: '#1F2E40', fontSize: '16px', fontWeight: '700' }}>{task.title}</h4>
-                          {task.description && <p style={{ margin: '0 0 10px 0', color: '#64748B', fontSize: '13px', lineHeight: '1.4' }}>{task.description}</p>}
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            <span style={{ background: '#E2E8F0', color: '#334155', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600' }}>
+                          <h4 className="task-title">{task.title}</h4>
+                          {task.description && <p className="task-desc">{task.description}</p>}
+                          <div className="task-meta-tags">
+                            <span className="task-user-tag">
                               👤 {task.user_name || task.assignedTo || 'Administrador'}
                             </span>
                             {task.company_name && (
-                              <span style={{ background: '#E0F2FE', color: '#0369A1', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600' }}>
+                              <span className="task-company-tag">
                                 🏢 {task.company_name}
                               </span>
                             )}
@@ -359,11 +252,7 @@ export default function TasksView() {
                       </div>
                       <button 
                         onClick={() => handleCompleteTask(task.id)}
-                        style={{
-                          background: '#10B981', color: '#FFFFFF', border: 'none', padding: '10px 16px',
-                          borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13px',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)', transition: 'all 0.2s ease', whiteSpace: 'nowrap'
-                        }}
+                        className="task-complete-btn"
                       >
                         ✓ Completar
                       </button>
@@ -375,8 +264,8 @@ export default function TasksView() {
           ) : (
             <>
               {completedTasks.length === 0 ? (
-                <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '40px', textAlign: 'center', border: '1px dashed #CBD5E1', color: '#64748B' }}>
-                  <p style={{ margin: 0, fontSize: '15px', fontWeight: '500' }}>Aún no hay tareas completadas en el historial.</p>
+                <div className="tasks-empty-card">
+                  <p className="tasks-empty-title">Aún no hay tareas completadas en el historial.</p>
                 </div>
               ) : (
                 completedTasks.map(task => {
@@ -385,25 +274,22 @@ export default function TasksView() {
 
                   return (
                     <div key={task.id} className="task-item completed">
-                      <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                        <div style={{
-                          background: '#10B981', color: '#FFFFFF', padding: '12px 14px', borderRadius: '12px',
-                          textAlign: 'center', minWidth: '105px'
-                        }}>
-                          <span style={{ fontSize: '9px', textTransform: 'uppercase', display: 'block', opacity: 0.9, fontWeight: '700' }}>Completada</span>
-                          <span style={{ fontSize: '13px', fontWeight: '800' }}>✓ Hecho</span>
+                      <div className="task-item-content">
+                        <div className="task-date-badge completed-badge">
+                          <span className="task-date-label">Completada</span>
+                          <span className="task-date-value">✓ Hecho</span>
                         </div>
                         <div>
-                          <h4 style={{ margin: '0 0 4px 0', color: '#1F2E40', fontSize: '16px', fontWeight: '700', textDecoration: 'line-through' }}>{task.title}</h4>
-                          {task.description && <p style={{ margin: '0 0 10px 0', color: '#64748B', fontSize: '13px' }}>{task.description}</p>}
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            <span style={{ background: '#E2E8F0', color: '#334155', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600' }}>
+                          <h4 className="task-title completed-title">{task.title}</h4>
+                          {task.description && <p className="task-desc">{task.description}</p>}
+                          <div className="task-meta-tags">
+                            <span className="task-user-tag">
                               Fecha límite: {formattedDate}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <span style={{ color: '#10B981', fontWeight: 'bold', fontSize: '13px' }}>
+                      <span className="task-finished-label">
                         Finalizada
                       </span>
                     </div>

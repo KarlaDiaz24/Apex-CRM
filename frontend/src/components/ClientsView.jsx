@@ -57,7 +57,7 @@ export default function ClientsView() {
           <h3>{clients.length}</h3>
           <span>Total Clientes</span>
         </div>
-        <div className="kpi-card" style={{ backgroundColor: 'var(--cyan-light)' }}>
+        <div className="kpi-card kpi-card-highlight">
           <h3>{nuevos}</h3>
           <span>Prospectos Nuevos</span>
         </div>
@@ -67,10 +67,10 @@ export default function ClientsView() {
         </div>
       </div>
 
-      <div style={{ padding: '0 25px 30px 25px' }}>
+      <div className="clients-content-wrapper">
         {/* Formulario de Registro */}
         <form onSubmit={handleSubmit} className="form-box">
-          <h3 style={{ color: 'var(--primary-dark)', marginBottom: '12px', fontSize: '16px' }}>+ Registrar Nueva Cuenta</h3>
+          <h3 className="form-box-title">+ Registrar Nueva Cuenta</h3>
           <div className="form-grid">
             <input className="input-field" type="text" placeholder="Nombre de la Empresa" value={form.company_name} onChange={(e) => setForm({...form, company_name: e.target.value})} required />
             <input className="input-field" type="text" placeholder="Contacto Principal" value={form.contact_name} onChange={(e) => setForm({...form, contact_name: e.target.value})} required />
@@ -86,18 +86,18 @@ export default function ClientsView() {
         </form>
 
         {/* Grilla de Tarjetas (3 columnas en escritorio según Wireframe) */}
-        <h3 style={{ color: 'var(--primary-dark)', borderBottom: '2px solid var(--cyan-btn)', paddingBottom: '6px' }}>
+        <h3 className="section-divider-title">
           Cartera de Clientes ({clients.length})
         </h3>
 
         {clients.length === 0 ? (
-          <p style={{ textAlign: 'center', padding: '30px', color: 'var(--text)' }}>No hay clientes registrados aún.</p>
+          <p className="empty-message">No hay clientes registrados aún.</p>
         ) : (
           <div className="cards-grid">
             {clients.map((client) => (
               <div key={client.id} className="wireframe-card">
                 <div className="wireframe-card-header">
-                  <strong style={{ fontSize: '16px' }}>{client.company_name}</strong>
+                  <strong className="card-title-strong">{client.company_name}</strong>
                   <span className="badge">{client.status}</span>
                 </div>
                 <div className="wireframe-card-body">
@@ -106,7 +106,7 @@ export default function ClientsView() {
                   <div><strong>📞 Teléfono:</strong> {client.phone || 'No registrado'}</div>
                 </div>
                 <div className="wireframe-card-footer">
-                  <span style={{ fontSize: '12px', color: '#6b7280' }}>ID: #{client.id}</span>
+                  <span className="card-id-label">ID: #{client.id}</span>
                   <button onClick={() => handleDelete(client.id)} className="btn-danger">
                     Enviar a Papelera
                   </button>

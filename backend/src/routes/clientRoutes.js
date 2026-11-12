@@ -3,7 +3,6 @@ const router = express.Router();
 const clientController = require('../controllers/clientController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
-// Rutas de Clientes
 router.get('/', authMiddleware, clientController.getClients);
 router.get('/deleted', authMiddleware, clientController.getDeletedClients);
 router.post('/', authMiddleware, clientController.createClient);

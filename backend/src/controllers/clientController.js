@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { logAction } = require('./auditController'); // <-- 1. Importar la función de auditoría
+const { logAction } = require('./auditController');
 
 // Obtener todos los clientes activos (GET)
 exports.getClients = async (req, res) => {

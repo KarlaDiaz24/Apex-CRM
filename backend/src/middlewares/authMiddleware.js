@@ -1,8 +1,5 @@
-// Middleware básico para simular validación de roles y seguridad
 const verifyRole = (requiredRole) => {
     return (req, res, next) => {
-        // En una implementación real con JWT, el usuario vendría en req.user tras decodificar el token.
-        // Para la prueba, simularemos la lectura del rol desde los headers o el body.
         const userRole = req.headers['x-user-role'] || 'user';
 
         if (requiredRole && userRole !== requiredRole) {
@@ -13,7 +10,6 @@ const verifyRole = (requiredRole) => {
     };
 };
 
-// Middleware base cuando se usa directamente: authMiddleware
 const authMiddleware = (req, res, next) => {
     return verifyRole()(req, res, next);
 };

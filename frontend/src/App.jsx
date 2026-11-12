@@ -34,38 +34,33 @@ function App() {
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      backgroundColor: '#f8fafc' // Color de fondo general opcional
-    }}>
+    <div className="app-container">
       {/* Header Corporativo con indicador de rol */}
-      <header style={{ background: 'var(--primary-dark)', color: '#fff', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+      <header className="app-header">
         <div>
-          <h1 style={{ margin: 0, fontSize: '20px', color: '#fff' }}>TURING-IA | CRM Enterprise</h1>
-          <span style={{ fontSize: '12px', color: 'var(--cyan-btn)' }}>
+          <h1 className="app-header-title">TURING-IA | CRM Enterprise</h1>
+          <span className="app-header-user">
             Usuario: {user.name} ({user.role === 'admin' ? 'Administrador' : 'Agente Operativo'})
           </span>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="app-header-nav">
           {/* Módulos comunes para ambos roles */}
           <button 
             onClick={() => setCurrentView('clients')}
-            style={{ background: currentView === 'clients' ? 'var(--cyan-btn)' : 'transparent', color: currentView === 'clients' ? 'var(--primary-dark)' : '#fff', border: '1px solid var(--cyan-btn)', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            className={`app-nav-btn ${currentView === 'clients' ? 'active' : ''}`}
           >
             Clientes
           </button>
           <button 
             onClick={() => setCurrentView('deals')}
-            style={{ background: currentView === 'deals' ? 'var(--cyan-btn)' : 'transparent', color: currentView === 'deals' ? 'var(--primary-dark)' : '#fff', border: '1px solid var(--cyan-btn)', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            className={`app-nav-btn ${currentView === 'deals' ? 'active' : ''}`}
           >
             Pipeline
           </button>
           <button 
             onClick={() => setCurrentView('tasks')}
-            style={{ background: currentView === 'tasks' ? 'var(--cyan-btn)' : 'transparent', color: currentView === 'tasks' ? 'var(--primary-dark)' : '#fff', border: '1px solid var(--cyan-btn)', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            className={`app-nav-btn ${currentView === 'tasks' ? 'active' : ''}`}
           >
             Tareas
           </button>
@@ -75,13 +70,13 @@ function App() {
             <>
               <button 
                 onClick={() => setCurrentView('trash')}
-                style={{ background: currentView === 'trash' ? 'var(--cyan-btn)' : 'transparent', color: currentView === 'trash' ? 'var(--primary-dark)' : '#fff', border: '1px solid var(--cyan-btn)', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                className={`app-nav-btn ${currentView === 'trash' ? 'active' : ''}`}
               >
                 Papelera
               </button>
               <button 
                 onClick={() => setCurrentView('audit')}
-                style={{ background: currentView === 'audit' ? 'var(--cyan-btn)' : 'transparent', color: currentView === 'audit' ? 'var(--primary-dark)' : '#fff', border: '1px solid var(--cyan-btn)', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                className={`app-nav-btn ${currentView === 'audit' ? 'active' : ''}`}
               >
                 Auditoría
               </button>
@@ -90,15 +85,15 @@ function App() {
 
           <button 
             onClick={handleLogout}
-            style={{ background: '#d9534f', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', marginLeft: '10px' }}
+            className="app-logout-btn"
           >
             Salir
           </button>
         </div>
       </header>
 
-      {/* Renderizado de vistas protegido por rol (flex: 1 empuja el footer hacia abajo) */}
-      <main style={{ flex: '1', paddingBottom: '40px' }}>
+      {/* Renderizado de vistas protegido por rol */}
+      <main className="app-main">
         {currentView === 'clients' && <ClientsView />}
         {currentView === 'deals' && <DealsView />}
         {currentView === 'tasks' && <TasksView />}
@@ -107,13 +102,13 @@ function App() {
       </main>
 
       {/* Footer estático anclado abajo */}
-      <footer className="corporate-footer" style={{ marginTop: 'auto' }}>
+      <footer className="corporate-footer">
         <div>
-          <strong style={{ color: '#fff' }}>TURING INTELIGENCIA ARTIFICIAL S.A.S.</strong>
-          <p style={{ fontSize: '12px', marginTop: '2px' }}>Sistema Integral de Gestión Comercial (CRM)</p>
+          <strong className="footer-company-name">TURING INTELIGENCIA ARTIFICIAL S.A.S.</strong>
+          <p className="footer-tagline">Sistema Integral de Gestión Comercial (CRM)</p>
         </div>
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <span style={{ color: 'var(--cyan-btn)' }}>● Estado: En línea</span>
+        <div className="footer-status-group">
+          <span className="footer-status-indicator">● Estado: En línea</span>
           <span>v1.0.0 Enterprise</span>
         </div>
       </footer>

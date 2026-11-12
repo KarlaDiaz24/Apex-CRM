@@ -29,40 +29,40 @@ export default function TrashView() {
   };
 
   return (
-    <div style={{ padding: '20px', width: '100%', boxSizing: 'border-box' }}>
-      <h2 style={{ borderBottom: '3px solid var(--cyan-btn)', paddingBottom: '8px' }}>
+    <div className="admin-view-container">
+      <h2 className="admin-view-title">
         Papelera de Clientes (Restauración)
       </h2>
-      <p style={{ marginBottom: '20px', color: 'var(--text)' }}>
+      <p className="admin-view-desc">
         Aquí se muestran los registros eliminados lógicamente. Puedes restaurarlos en cualquier momento para mantener la integridad de la información.
       </p>
 
       {/* Tabla de Clientes en Papelera */}
-      <div className="table-responsive" style={{ background: 'var(--bg)', borderRadius: '8px', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+      <div className="table-responsive">
+        <table className="data-table">
           <thead>
-            <tr style={{ background: 'var(--primary-dark)', color: '#fff' }}>
-              <th style={{ padding: '12px' }}>Empresa</th>
-              <th style={{ padding: '12px' }}>Contacto</th>
-              <th style={{ padding: '12px' }}>Correo</th>
-              <th style={{ padding: '12px' }}>Fecha Eliminación</th>
-              <th style={{ padding: '12px' }}>Acciones</th>
+            <tr className="data-table-header">
+              <th className="data-table-th">Empresa</th>
+              <th className="data-table-th">Contacto</th>
+              <th className="data-table-th">Correo</th>
+              <th className="data-table-th">Fecha Eliminación</th>
+              <th className="data-table-th">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {deletedClients.length === 0 ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: 'var(--text)' }}>La papelera está vacía.</td></tr>
+              <tr><td colSpan="5" className="data-table-empty">La papelera está vacía.</td></tr>
             ) : (
               deletedClients.map((client) => (
-                <tr key={client.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '12px', color: 'var(--text-h)', fontWeight: 'bold' }}>{client.company_name}</td>
-                  <td style={{ padding: '12px' }}>{client.contact_name}</td>
-                  <td style={{ padding: '12px' }}>{client.email}</td>
-                  <td style={{ padding: '12px' }}>{client.deleted_at ? new Date(client.deleted_at).toLocaleString() : 'N/D'}</td>
-                  <td style={{ padding: '12px' }}>
+                <tr key={client.id} className="data-table-tr">
+                  <td className="data-table-td-bold">{client.company_name}</td>
+                  <td className="data-table-td">{client.contact_name}</td>
+                  <td className="data-table-td">{client.email}</td>
+                  <td className="data-table-td">{client.deleted_at ? new Date(client.deleted_at).toLocaleString() : 'N/D'}</td>
+                  <td className="data-table-td">
                     <button 
                       onClick={() => handleRestore(client.id)} 
-                      style={{ background: 'var(--accent-blue)', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                      className="btn-restore"
                     >
                       Restaurar
                     </button>
