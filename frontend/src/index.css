@@ -27,6 +27,7 @@
 body {
   background-color: var(--bg);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Contenedor a 100% de ancho de pantalla */
@@ -710,7 +711,10 @@ header h1 {
 .deals-page-container {
   padding: 35px 40px;
   max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .deals-header {
@@ -732,9 +736,10 @@ header h1 {
 
 .deal-layout {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
   gap: 30px;
   align-items: start;
+  width: 100%;
 }
 
 @media (max-width: 1024px) {
@@ -861,6 +866,8 @@ header h1 {
   padding: 30px;
   border: 1px solid #E2E8F0;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .deals-list-header {
@@ -892,10 +899,12 @@ header h1 {
   overflow: hidden;
   border: 1px solid #E2E8F0;
   box-shadow: 0 4px 20px rgba(31, 46, 64, 0.04);
+  min-width: 0;
 }
 
 .table-scroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .deals-table {
@@ -1033,7 +1042,10 @@ header h1 {
 .tasks-page-container {
   padding: 35px 40px;
   max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .tasks-header {
@@ -1055,9 +1067,10 @@ header h1 {
 
 .task-layout {
   display: grid;
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
   gap: 30px;
   align-items: start;
+  width: 100%;
 }
 
 @media (max-width: 1024px) {
@@ -1337,7 +1350,10 @@ header h1 {
 .audit-page-container {
   padding: 35px 40px;
   max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .audit-header {
@@ -1505,7 +1521,10 @@ header h1 {
 .trash-page-container {
   padding: 35px 40px;
   max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .trash-header {
@@ -1893,4 +1912,324 @@ header h1 {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — TABLET (iPad ≤ 1024px)
+   Login: solo panel derecho. Pipeline/Deals: columna única.
+   ========================================================================== */
+@media (max-width: 1024px) {
+
+  /* LOGIN — ocultar panel izquierdo, mostrar solo el formulario */
+  .bg-split {
+    grid-template-columns: 1fr;
+  }
+  .left-panel {
+    display: none !important;
+  }
+  .login-right-panel {
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+  .glass-morphism-card {
+    max-width: 480px;
+    padding: 36px 28px;
+  }
+
+  /* NAV HEADER — wrap en dos líneas si hace falta */
+  .app-header {
+    gap: 8px;
+  }
+  .app-header-nav {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* DEALS (Pipeline) — formulario encima de la tabla */
+  .deals-page-container {
+    padding: 24px 20px;
+  }
+  .deal-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* TASKS — formulario encima de la lista */
+  .tasks-page-container {
+    padding: 24px 20px;
+  }
+  .task-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* AUDIT & TRASH — padding más ajustado */
+  .audit-page-container,
+  .trash-page-container {
+    padding: 24px 20px;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE — MÓVIL (≤ 640px)
+   Todas las vistas: columna única, paddings reducidos, tablas con scroll.
+   ========================================================================== */
+@media (max-width: 640px) {
+
+  /* ---- GLOBALS ---- */
+  main {
+    padding: 16px 12px;
+  }
+
+  /* ---- LOGIN ---- */
+  .login-right-panel {
+    padding: 24px 16px;
+  }
+  .glass-morphism-card {
+    padding: 28px 20px;
+    border-radius: 20px;
+  }
+
+  /* ---- APP HEADER / NAV ---- */
+  .app-header {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .app-header-nav {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .app-nav-btn {
+    font-size: 12px;
+    padding: 7px 8px;
+    text-align: center;
+  }
+  .app-logout-btn {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ---- KPI CARDS (Dashboard) ---- */
+  .kpi-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 4px;
+  }
+  .kpi-card {
+    padding: 16px 12px;
+  }
+  .kpi-card h3 {
+    font-size: 26px;
+  }
+  .wireframe-hero {
+    padding: 28px 16px 50px 16px;
+  }
+  .wireframe-hero h2 {
+    font-size: 20px;
+  }
+
+  /* ---- CLIENTS ---- */
+  .clients-content-wrapper {
+    padding: 0 12px 20px 12px;
+  }
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .split-layout {
+    grid-template-columns: 1fr;
+  }
+  .wireframe-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .card-actions-group {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* ---- DEALS (Pipeline) ---- */
+  .deals-page-container {
+    padding: 16px 12px;
+  }
+  .deals-title {
+    font-size: 20px;
+  }
+  .deal-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .form-card {
+    padding: 20px 16px;
+  }
+  .deals-container-card {
+    padding: 16px 12px;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .deals-table {
+    min-width: 560px;
+  }
+  .deals-table th,
+  .deal-td-company,
+  .deal-td-title,
+  .deal-td-amount,
+  .deal-td-stage,
+  .deal-td-date,
+  .deal-td-actions {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .deals-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* ---- TASKS ---- */
+  .tasks-page-container {
+    padding: 16px 12px;
+  }
+  .tasks-title {
+    font-size: 20px;
+  }
+  .task-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .tasks-container-card {
+    padding: 16px 12px;
+  }
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+  }
+  .task-item-content {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .task-date-badge {
+    min-width: unset;
+    width: 100%;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+  }
+  .task-complete-btn {
+    width: 100%;
+    text-align: center;
+  }
+  .tasks-tab-header {
+    gap: 6px;
+  }
+  .tab-btn {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+
+  /* ---- TRASH ---- */
+  .trash-page-container {
+    padding: 16px 12px;
+  }
+  .trash-title {
+    font-size: 20px;
+  }
+  .trash-container-card {
+    padding: 16px 12px;
+  }
+  .trash-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .trash-table {
+    min-width: 560px;
+  }
+  .trash-table-th,
+  .trash-td-company,
+  .trash-td-contact,
+  .trash-td-email,
+  .trash-td-date,
+  .trash-td-actions {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* ---- AUDIT ---- */
+  .audit-page-container {
+    padding: 16px 12px;
+  }
+  .audit-title {
+    font-size: 20px;
+  }
+  .audit-container-card {
+    padding: 16px 12px;
+  }
+  .audit-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .audit-table {
+    min-width: 600px;
+  }
+  .audit-table-th,
+  .audit-td-id,
+  .audit-td-user,
+  .audit-td-action,
+  .audit-td-details,
+  .audit-td-date {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* ---- MODAL ---- */
+  .modal-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+  .modal-card {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+  }
+  .modal-header {
+    padding: 20px 20px 14px 20px;
+  }
+  .modal-body {
+    padding: 16px 20px;
+  }
+  .modal-footer {
+    padding: 14px 20px 20px 20px;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .modal-btn-cancel,
+  .modal-btn-confirm {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ---- CORPORATE FOOTER ---- */
+  .corporate-footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+    padding: 16px;
+  }
+  .footer-status-group {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 }
