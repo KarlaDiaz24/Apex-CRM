@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../config/db');
 
 const getJwtSecret = () => {
     const secret = process.env.JWT_SECRET;
@@ -6,7 +7,7 @@ const getJwtSecret = () => {
     return secret;
 };
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     const authorization = req.headers.authorization || '';
     const [scheme, token] = authorization.split(' ');
 
@@ -15,10 +16,23 @@ const authMiddleware = (req, res, next) => {
     }
 
     try {
-        req.user = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
+        const tokenUser = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
+        if (!Number.isInteger(Number(tokenUser.id)) || Number(tokenUser.id) < 1) {
+            return res.status(401).json({ error: 'Token inválido o expirado' });
+        }
+        const [users] = await db.query(
+            'SELECT id, name, email, role FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1',
+            [tokenUser.id]
+        );
+        if (!users.length) return res.status(401).json({ error: 'La cuenta ya no está activa' });
+        req.user = users[0];
         next();
     } catch (error) {
-        return res.status(401).json({ error: 'Token inválido o expirado' });
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError' || error.message === 'JWT_SECRET no está configurado') {
+            return res.status(401).json({ error: 'Token inválido o expirado' });
+        }
+        console.error('Error al validar la sesión:', error.message);
+        return res.status(503).json({ error: 'No fue posible validar la sesión en este momento' });
     }
 };
 

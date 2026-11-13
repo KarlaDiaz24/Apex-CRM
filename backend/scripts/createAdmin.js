@@ -3,6 +3,7 @@ require('dotenv').config();
 const readline = require('node:readline/promises');
 const bcrypt = require('bcryptjs');
 const db = require('../src/config/db');
+const { isText, isEmail, namePattern } = require('../src/utils/validators');
 
 const ask = async (question) => {
     const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -62,9 +63,13 @@ async function main() {
     const email = (await ask('Correo del administrador: ')).toLowerCase();
     const password = await askPassword();
 
-    if (!name) throw new Error('El nombre es obligatorio.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Ingresa un correo válido.');
-    if (password.length < 8) throw new Error('La contraseña debe tener al menos 8 caracteres.');
+    if (!isText(name, { min: 2, max: 100, pattern: namePattern })) {
+        throw new Error('El nombre debe tener de 2 a 100 caracteres y usar solo letras, espacios, puntos, apóstrofes o guiones.');
+    }
+    if (!isEmail(email)) throw new Error('Ingresa un correo válido de máximo 100 caracteres.');
+    if (password.length < 8 || Buffer.byteLength(password, 'utf8') > 72) {
+        throw new Error('La contraseña debe tener al menos 8 caracteres y no superar 72 bytes en UTF-8.');
+    }
 
     const passwordHash = await bcrypt.hash(password, 12);
     const [result] = await db.query(

@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../services/api';
 import Modal from './Modal';
+import Pagination from './Pagination';
+
+const PAGE_SIZE = 10;
 
 export default function TrashView() {
   const [deletedClients, setDeletedClients] = useState([]);
-  const [pendingRestoreId, setPendingRestoreId] = useState(null);
-  const [pendingRestoreName, setPendingRestoreName] = useState('');
+  const [page, setPage] = useState(1);
+  const pageCount = Math.max(1, Math.ceil(deletedClients.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const visibleClients = deletedClients.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
@@ -32,12 +37,12 @@ export default function TrashView() {
   };
 
   useEffect(() => {
-    fetchDeletedClients();
+    api.get('/clients/deleted')
+      .then(({ data }) => setDeletedClients(data))
+      .catch((error) => console.error('Error al cargar clientes eliminados:', error));
   }, []);
 
   const handleRestore = (id, company_name) => {
-    setPendingRestoreId(id);
-    setPendingRestoreName(company_name);
     showModal({
       type: 'warning',
       title: 'Restaurar Cliente',
@@ -116,7 +121,7 @@ export default function TrashView() {
                     </td>
                   </tr>
                 ) : (
-                  deletedClients.map((client) => (
+                  visibleClients.map((client) => (
                     <tr key={client.id} className="trash-row">
                       <td className="trash-td-company">
                         🏢 {client.company_name}
@@ -144,6 +149,7 @@ export default function TrashView() {
               </tbody>
             </table>
           </div>
+          <Pagination page={currentPage} pageCount={pageCount} total={deletedClients.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../services/api';
 import Modal from './Modal';
 
@@ -33,7 +33,9 @@ export default function ClientsView() {
   };
 
   useEffect(() => {
-    fetchClients();
+    api.get('/clients')
+      .then(({ data }) => setClients(data))
+      .catch((error) => console.error('Error al cargar clientes:', error));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -53,11 +55,12 @@ export default function ClientsView() {
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
       });
     } catch (error) {
+      console.error('Error al crear cliente:', error);
       setModalConfig({
         isOpen: true,
         type: 'danger',
         title: 'Error al Crear',
-        message: 'No fue posible registrar la cuenta. Por favor verifica los datos.',
+        message: error.response?.data?.error || 'No fue posible registrar la cuenta. Verifica los datos e inténtalo de nuevo.',
         confirmText: 'Cerrar',
         showCancel: false,
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
@@ -93,11 +96,12 @@ export default function ClientsView() {
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
       });
     } catch (error) {
+      console.error('Error al actualizar cliente:', error);
       setModalConfig({
         isOpen: true,
         type: 'danger',
         title: 'Error al Actualizar',
-        message: 'No fue posible actualizar la información del cliente.',
+        message: error.response?.data?.error || 'No fue posible actualizar la información. Verifica los datos e inténtalo de nuevo.',
         confirmText: 'Cerrar',
         showCancel: false,
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
@@ -132,6 +136,7 @@ export default function ClientsView() {
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
       });
     } catch (error) {
+      console.error('Error al eliminar cliente:', error);
       setModalConfig({
         isOpen: true,
         type: 'danger',
@@ -173,20 +178,38 @@ export default function ClientsView() {
 
       <div className="clients-content-wrapper">
         {/* Formulario de Registro */}
-        <form onSubmit={handleSubmit} className="form-box">
-          <h3 className="form-box-title">+ Registrar Nueva Cuenta</h3>
+        <form onSubmit={handleSubmit} className="form-box clients-form">
+          <div className="clients-form-heading">
+            <span className="clients-form-icon" aria-hidden="true">+</span>
+            <div>
+              <h3 className="form-box-title">Registrar cliente</h3>
+              <p>Agrega una cuenta y su contacto principal.</p>
+            </div>
+          </div>
           <div className="form-grid">
-            <input className="input-field" type="text" placeholder="Nombre de la Empresa" value={form.company_name} onChange={(e) => setForm({...form, company_name: e.target.value})} required />
-            <input className="input-field" type="text" placeholder="Contacto Principal" value={form.contact_name} onChange={(e) => setForm({...form, contact_name: e.target.value})} required />
-            <input className="input-field" type="email" placeholder="Correo Electrónico" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} required />
-            <input className="input-field" type="text" placeholder="Teléfono" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} />
-            <select className="input-field" value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}>
+            <label className="field-label">Empresa
+              <input className="input-field" type="text" placeholder="Ej. Turing Inteligencia Artificial" value={form.company_name} onChange={(e) => setForm({...form, company_name: e.target.value})} minLength={1} maxLength={150} pattern="[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 .,&amp;'()/#:+-]*" title="Usa letras, números, espacios y estos signos: . , &amp; ' ( ) / # : + -" autoComplete="organization" required />
+            </label>
+            <label className="field-label">Nombre del contacto
+              <input className="input-field" type="text" placeholder="Ej. María López" value={form.contact_name} onChange={(e) => setForm({...form, contact_name: e.target.value})} minLength={2} maxLength={100} pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]*" title="Usa letras, espacios, puntos, apóstrofes o guiones" autoComplete="name" required />
+            </label>
+            <label className="field-label">Correo electrónico
+              <input className="input-field" type="email" placeholder="contacto@empresa.com" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} maxLength={100} title="Escribe un correo con formato nombre@dominio.com" autoComplete="email" required />
+            </label>
+            <label className="field-label">Teléfono
+              <input className="input-field" type="tel" inputMode="numeric" placeholder="5512345678" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} pattern="[0-9]{10}" minLength={10} maxLength={10} title="Ingresa un teléfono de 10 dígitos" autoComplete="tel-national" required />
+            </label>
+            <label className="field-label">Estado del cliente
+              <select className="input-field" value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}>
               <option value="Nuevo">Estado: Nuevo</option>
               <option value="En Contacto">Estado: En Contacto</option>
               <option value="Cliente">Estado: Cliente</option>
               <option value="Cerrado">Estado: Cerrado</option>
-            </select>
-            <button type="submit" className="btn-primary">Guardar Cliente</button>
+              </select>
+            </label>
+          </div>
+          <div className="clients-form-actions">
+            <button type="submit" className="btn-primary clients-submit">Guardar cliente</button>
           </div>
         </form>
 
@@ -257,42 +280,65 @@ export default function ClientsView() {
       >
         <form onSubmit={handleSaveEdit} className="vertical-form">
           <div>
-            <label className="field-label">Nombre de la Empresa *</label>
+            <label className="field-label" htmlFor="edit-company">Empresa *</label>
             <input 
+              id="edit-company"
               type="text" 
               className="modern-input" 
+              minLength={1}
+              maxLength={150}
+              pattern="[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 .,&amp;'()/#:+-]*"
+              title="Usa letras, números, espacios y estos signos: . , &amp; ' ( ) / # : + -"
               value={editForm.company_name} 
               onChange={(e) => setEditForm({...editForm, company_name: e.target.value})} 
               required 
             />
           </div>
           <div>
-            <label className="field-label">Contacto Principal *</label>
+            <label className="field-label" htmlFor="edit-contact">Nombre del contacto *</label>
             <input 
+              id="edit-contact"
               type="text" 
               className="modern-input" 
+              minLength={2}
+              maxLength={100}
+              pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]*"
+              title="Usa letras, espacios, puntos, apóstrofes o guiones"
+              autoComplete="name"
               value={editForm.contact_name} 
               onChange={(e) => setEditForm({...editForm, contact_name: e.target.value})} 
               required 
             />
           </div>
           <div>
-            <label className="field-label">Correo Electrónico *</label>
+            <label className="field-label" htmlFor="edit-client-email">Correo electrónico *</label>
             <input 
+              id="edit-client-email"
               type="email" 
               className="modern-input" 
+              maxLength={100}
+              title="Escribe un correo con formato nombre@dominio.com"
+              autoComplete="email"
               value={editForm.email} 
               onChange={(e) => setEditForm({...editForm, email: e.target.value})} 
               required 
             />
           </div>
           <div>
-            <label className="field-label">Teléfono</label>
+          <label className="field-label" htmlFor="edit-client-phone">Teléfono *</label>
             <input 
-              type="text" 
+              id="edit-client-phone"
+              type="tel"
+              inputMode="numeric"
               className="modern-input" 
+              pattern="[0-9]{10}"
+              minLength={10}
+              maxLength={10}
+              title="Ingresa un teléfono de 10 dígitos"
+              autoComplete="tel-national"
               value={editForm.phone} 
-              onChange={(e) => setEditForm({...editForm, phone: e.target.value})} 
+              onChange={(e) => setEditForm({...editForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})}
+              required
             />
           </div>
           <div>

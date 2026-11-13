@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
 import Modal from './Modal';
 
@@ -8,11 +8,9 @@ export default function TasksView() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [assignedTo, setAssignedTo] = useState('Administrador (admin)');
   const [clientId, setClientId] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
-  const [pendingTaskId, setPendingTaskId] = useState(null);
 
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
@@ -32,25 +30,20 @@ export default function TasksView() {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    fetchTasks();
-    fetchClients();
+    Promise.all([api.get('/tasks'), api.get('/clients')])
+      .then(([tasksResponse, clientsResponse]) => {
+        setTasks(tasksResponse.data);
+        setClients(clientsResponse.data);
+      })
+      .catch((error) => console.error('Error al cargar agenda:', error));
   }, []);
 
   const fetchTasks = async () => {
     try {
       const res = await api.get('/tasks');
       setTasks(res.data);
-    } catch (err) {
-      console.error('Error al cargar tareas', err);
-    }
-  };
-
-  const fetchClients = async () => {
-    try {
-      const res = await api.get('/clients');
-      setClients(res.data);
-    } catch (err) {
-      console.error('Error al cargar clientes', err);
+    } catch (error) {
+      console.error('Error al cargar tareas', error);
     }
   };
 
@@ -74,7 +67,6 @@ export default function TasksView() {
         title,
         description,
         due_date: dueDate,
-        user_id: 1,
         client_id: clientId ? Number(clientId) : null
       });
       setTitle('');
@@ -90,10 +82,11 @@ export default function TasksView() {
         onConfirm: closeModal,
       });
     } catch (err) {
+      console.error('Error al crear tarea:', err);
       showModal({
         type: 'danger',
         title: 'Error al Crear Tarea',
-        message: 'No se pudo registrar la tarea. Verifica la conexión e intenta de nuevo.',
+        message: err.response?.data?.error || 'No se pudo registrar la tarea. Verifica los datos e intenta de nuevo.',
         confirmText: 'Cerrar',
         onConfirm: closeModal,
       });
@@ -103,7 +96,6 @@ export default function TasksView() {
   };
 
   const handleCompleteTask = (id) => {
-    setPendingTaskId(id);
     showModal({
       type: 'info',
       title: 'Completar Tarea',
@@ -128,6 +120,7 @@ export default function TasksView() {
         onConfirm: closeModal,
       });
     } catch (err) {
+      console.error('Error al completar tarea:', err);
       showModal({
         type: 'danger',
         title: 'Error',
@@ -176,22 +169,20 @@ export default function TasksView() {
                 onChange={(e) => setTitle(e.target.value)} 
                 required 
                 className="modern-input"
-                placeholder="Ej. Llamada de seguimiento comercial" 
+                placeholder="Ej. Llamada de seguimiento comercial"
+                minLength={2}
+                maxLength={150}
+                pattern="[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 .,&amp;'()/#:+-]*"
+                title="Usa letras, números, espacios y estos signos: . , &amp; ' ( ) / # : + -"
               />
+              <small className="field-help">De 2 a 150 caracteres.</small>
             </div>
 
             <div>
-              <label className="field-label">
-                Responsable *
-              </label>
-              <select 
-                value={assignedTo} 
-                onChange={(e) => setAssignedTo(e.target.value)} 
-                className="modern-input"
-              >
-                <option value="Administrador (admin)">Administrador (admin)</option>
-                <option value="Agente Operativo">Agente Operativo</option>
-              </select>
+              <label className="field-label">Responsable</label>
+              <div className="modern-input bg-slate-50 text-slate-500" aria-live="polite">
+                Se asignará a tu usuario autenticado
+              </div>
             </div>
 
             <div>
@@ -205,9 +196,10 @@ export default function TasksView() {
               >
                 <option value="">-- Ninguno / General --</option>
                 {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.company_name || c.company})</option>
+                  <option key={c.id} value={c.id}>{c.contact_name || c.name} ({c.company_name || c.company})</option>
                 ))}
               </select>
+              <small className="field-help">Opcional. Déjalo vacío para una tarea general.</small>
             </div>
 
             <div>
@@ -232,9 +224,11 @@ export default function TasksView() {
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)} 
                 rows="3"
+                maxLength={2000}
                 className="modern-input"
-                placeholder="Detalles de la reunión o llamada..." 
+                placeholder="Ej. Confirmar disponibilidad para la reunión..."
               />
+              <small className="field-help">Opcional. Máximo 2,000 caracteres.</small>
             </div>
 
             <button type="submit" disabled={loading} className="btn-action">
@@ -286,7 +280,7 @@ export default function TasksView() {
                           {task.description && <p className="task-desc">{task.description}</p>}
                           <div className="task-meta-tags">
                             <span className="task-user-tag">
-                              👤 {task.user_name || task.assignedTo || 'Administrador'}
+                              👤 {task.user_name || 'Usuario asignado'}
                             </span>
                             {task.company_name && (
                               <span className="task-company-tag">

@@ -4,7 +4,12 @@ const db = require('../config/db');
 exports.getAuditLogs = async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT audit_logs.*, users.name as user_name, users.email as user_email
+            SELECT audit_logs.*, users.name as user_name, users.email as user_email,
+                   CASE
+                       WHEN users.id IS NOT NULL THEN users.name
+                       WHEN audit_logs.user_id IS NOT NULL THEN CONCAT('Usuario #', audit_logs.user_id)
+                       ELSE 'Registro histórico sin usuario asociado'
+                   END AS actor_label
             FROM audit_logs 
             LEFT JOIN users ON audit_logs.user_id = users.id 
             ORDER BY audit_logs.created_at DESC

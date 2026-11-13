@@ -4,12 +4,15 @@ Manual de instalación, ejecución y prueba del CRM comercial desarrollado.
 
 ## Qué incluye
 
-- Frontend de una sola página construido con React y Vite.
+- Frontend de una sola página construido con React, Vite y Tailwind CSS 4.
 - API REST construida con Node.js y Express.
 - Base de datos MySQL con usuarios, clientes, interacciones, oportunidades, tareas y auditoría.
 - Inicio de sesión con JWT y roles `admin` y `user`.
 - Borrado lógico de clientes, oportunidades, tareas e interacciones mediante `deleted_at`.
 - Papelera y restauración de clientes disponibles para administradores.
+- Registro e historial de interacciones comerciales desde la interfaz.
+- Administración de cuentas de agentes desde la interfaz de administrador.
+- Las tareas operativas de agentes quedan aisladas por usuario; administración puede consultar todas.
 
 ## Requisitos
 
@@ -89,7 +92,7 @@ Si el comando indica que ya existe un admin, utiliza la cuenta administradora qu
 
 ## 5. Crear usuarios normales
 
-Una vez que exista el admin, inicia sesión y usa `POST /api/auth/register` con su JWT. El endpoint crea exclusivamente usuarios con rol `user`, y guarda la contraseña con bcrypt. No acepta que el cliente elija el rol.
+Una vez que exista el admin, inicia sesión y abre **Usuarios** para crear, consultar, editar y desactivar cuentas de agentes. Al editar, la contraseña es opcional; si se cambia, se guarda con bcrypt. La desactivación es lógica y bloquea de inmediato el uso de sus tokens JWT. También se pueden usar `POST /api/auth/register`, `PUT /api/auth/users/:id` y `DELETE /api/auth/users/:id` con el JWT admin. La API solo permite administrar cuentas con rol `user`; no permite cambiar ni desactivar cuentas admin.
 
 ## 6. Configurar y ejecutar el frontend
 
@@ -112,7 +115,7 @@ Luego inicia Vite:
 pnpm run dev
 ```
 
-Abre la URL local que imprime Vite, normalmente `http://localhost:5173`. El archivo `api.js` usa como URL predeterminada la API desplegada de Render; `.env.local` la sobrescribe para desarrollo local.
+Abre la URL local que imprime Vite, normalmente `http://localhost:5173`. El archivo `api.js` usa como URL predeterminada la API desplegada en Render; define `VITE_API_URL=http://localhost:5000/api` en `frontend/.env.local` si necesitas conectar el frontend al backend local.
 
 ## 7. Iniciar sesión y probar con Postman
 
@@ -174,7 +177,7 @@ El body no debe incluir rol. Después inicia sesión con esa cuenta para obtener
 4. Con token admin, confirma que aparece en `GET /api/clients/deleted`.
 5. Envía `PUT /api/clients/restore/{id}` y confirma que vuelve a aparecer en `GET /api/clients`.
 
-`DELETE` marca `deleted_at`; no borra físicamente la fila. Deals, tareas e interacciones también se eliminan lógicamente, aunque solo los clientes tienen endpoint de papelera/restauración en la interfaz actual.
+`DELETE` marca `deleted_at`; no borra físicamente la fila. Deals, tareas e interacciones también se eliminan lógicamente. La papelera de la interfaz permite restaurar clientes; los demás tipos no tienen restauración de interfaz.
 
 ## Endpoints
 
@@ -186,17 +189,33 @@ Todas las rutas salvo `POST /api/auth/login` requieren `Authorization: Bearer <J
 | GET | `/api/auth/me` | Autenticado | Devuelve el perfil del token |
 | POST | `/api/auth/register` | Admin | Crea un usuario `user` |
 | GET | `/api/auth/users` | Admin | Lista usuarios activos |
+| PUT | `/api/auth/users/:id` | Admin | Edita nombre, correo y opcionalmente contraseña de un agente |
+| DELETE | `/api/auth/users/:id` | Admin | Desactiva lógicamente un agente y revoca sus sesiones |
 | GET, POST | `/api/clients` | Admin y user | Consultar y crear clientes activos |
 | PUT, DELETE | `/api/clients/:id` | Admin y user | Editar o eliminar lógicamente |
 | GET | `/api/clients/deleted` | Admin | Consulta la papelera de clientes |
 | PUT | `/api/clients/restore/:id` | Admin | Restaura un cliente |
 | GET, POST, PUT, DELETE | `/api/deals` y `/api/deals/:id` | Admin y user | CRUD de oportunidades; DELETE lógico |
-| GET, POST | `/api/tasks` | Admin y user | Consultar y crear tareas |
-| PUT, DELETE | `/api/tasks/:id` | Admin y user | Editar o eliminar lógicamente |
-| PUT | `/api/tasks/:id/complete` | Admin y user | Completa una tarea activa |
+| GET, POST | `/api/tasks` | Admin y user | Admin consulta todas; cada user consulta y crea sus tareas |
+| PUT, DELETE | `/api/tasks/:id` | Admin y user | Admin gestiona todas; cada user gestiona las propias |
+| PUT | `/api/tasks/:id/complete` | Admin y user | Completa una tarea activa propia o, como admin, cualquier tarea |
 | GET, POST | `/api/interactions` | Admin y user | Consultar y crear interacciones |
-| DELETE | `/api/interactions/:id` | Admin y user | Elimina lógicamente |
+| DELETE | `/api/interactions/:id` | Admin y user | Admin o autor elimina lógicamente |
 | GET | `/api/audit` | Admin | Consulta auditoría |
+
+La aplicación también incluye las vistas de **Interacciones** (crear y consultar actividades) y **Usuarios** (crear agentes y consultar cuentas activas; solo admin).
+
+## Reglas de captura y validación
+
+- Empresa: letras, números, espacios y los signos `. , & ' ( ) / # : + -`; máximo 150 caracteres.
+- Contacto: letras, espacios, puntos, apóstrofes y guiones; de 2 a 100 caracteres.
+- Correo: formato de correo válido; máximo 100 caracteres.
+- Teléfono: obligatorio y compuesto por exactamente 10 dígitos. El formulario elimina caracteres no numéricos mientras se escribe y no permite enviar menos de 10.
+- Oportunidad y tarea: título de 2 a 150 caracteres; acepta letras, números, espacios y los signos `. , & ' ( ) / # : + -`.
+- Monto: opcional, de 0 a 99,999,999.99, con hasta 2 decimales.
+- Notas de tareas e interacciones: texto libre limitado a 2,000 y 5,000 caracteres, respectivamente.
+
+El frontend informa estas reglas y limita las entradas. El backend las vuelve a validar y responde `400` con un mensaje que indica qué corregir; la seguridad no depende solo de las restricciones del navegador.
 
 ### Backend en Render
 

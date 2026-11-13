@@ -1,5 +1,19 @@
 const db = require('../config/db');
 const { logAction } = require('./auditController');
+const { isText, isEmail, isPhone, namePattern, businessTextPattern, clientStatuses } = require('../utils/validators');
+
+const validateClient = ({ company_name, contact_name, email, phone, status }) => {
+    if (!isText(company_name, { min: 1, max: 150, pattern: businessTextPattern })) {
+        return 'La empresa es obligatoria (máximo 150 caracteres; letras, números y . , & \' ( ) / # : + -).';
+    }
+    if (!isText(contact_name, { min: 2, max: 100, pattern: namePattern })) {
+        return 'El contacto debe tener de 2 a 100 caracteres y contener solo letras, espacios, puntos, apóstrofes o guiones.';
+    }
+    if (!isEmail(email)) return 'Ingresa un correo válido de máximo 100 caracteres.';
+    if (!isPhone(phone)) return 'El teléfono es obligatorio y debe contener exactamente 10 dígitos numéricos.';
+    if (status !== undefined && !clientStatuses.has(status)) return 'Selecciona un estado de cliente válido.';
+    return null;
+};
 
 // Obtener todos los clientes activos (GET)
 exports.getClients = async (req, res) => {
@@ -25,9 +39,12 @@ exports.getDeletedClients = async (req, res) => {
 exports.createClient = async (req, res) => {
     try {
         const { company_name, contact_name, email, phone, status } = req.body || {};
+        const validationError = validateClient({ company_name, contact_name, email, phone, status });
+        if (validationError) return res.status(400).json({ error: validationError });
+
         const [result] = await db.query(
             'INSERT INTO clients (company_name, contact_name, email, phone, status) VALUES (?, ?, ?, ?, ?)',
-            [company_name, contact_name, email, phone, status || 'Nuevo']
+            [company_name.trim(), contact_name.trim(), email.trim().toLowerCase(), phone, status || 'Nuevo']
         );
 
         // <-- 2. Registrar en auditoría la creación
@@ -44,10 +61,12 @@ exports.updateClient = async (req, res) => {
     try {
         const { id } = req.params;
         const { company_name, contact_name, email, phone, status } = req.body || {};
+        const validationError = validateClient({ company_name, contact_name, email, phone, status });
+        if (validationError) return res.status(400).json({ error: validationError });
         
         await db.query(
             'UPDATE clients SET company_name = ?, contact_name = ?, email = ?, phone = ?, status = ? WHERE id = ?',
-            [company_name, contact_name, email, phone, status, id]
+            [company_name.trim(), contact_name.trim(), email.trim().toLowerCase(), phone, status, id]
         );
 
         // <-- 3. Registrar en auditoría la actualización

@@ -1,4 +1,13 @@
 @import "tailwindcss";
+
+@theme {
+  --color-brand-navy: #0b2540;
+  --color-brand-blue: #075b83;
+  --color-brand-cyan: #35c5e0;
+  --color-brand-mint: #26bd91;
+  --color-brand-surface: #f4f8fb;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
 :root {
   --primary-dark: #1F2E40;
   --bg-light: #F8FAFC;
@@ -19,10 +28,12 @@
   box-sizing: border-box;
 }
 
-*, *::before, *::after {
-  box-sizing: inherit;
-  margin: 0;
-  padding: 0;
+@layer base {
+  *, *::before, *::after {
+    box-sizing: inherit;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 body {
@@ -31,7 +42,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Contenedor a 100% de ancho de pantalla */
+/* Contenedor raíz para las vistas heredadas. */
 #root {
   min-height: 100vh;
   display: flex;
@@ -39,38 +50,6 @@ body {
   background-color: var(--card-bg);
   width: 100%;
   margin: 0;
-}
-
-main {
-  flex: 1 0 auto;
-  padding: 30px 5%;
-  width: 100%;
-}
-
-@media (max-width: 768px) {
-  main {
-    padding: 20px 15px;
-  }
-}
-
-/* --- HEADER CORPORATIVO A ANCHO COMPLETO --- */
-header {
-  background-color: var(--primary-dark);
-  color: #FFFFFF;
-  padding: 20px 5%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-  border-bottom: 3px solid var(--accent-blue);
-  width: 100%;
-}
-
-header h1 {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
 }
 
 /* --- HERO & KPI CARDS --- */
@@ -237,6 +216,59 @@ header h1 {
   outline: none;
   border-color: var(--cyan-btn);
   box-shadow: 0 0 0 3px rgba(65, 209, 242, 0.15);
+}
+
+.select-field,
+select.input-field,
+select.modern-input {
+  appearance: none;
+  padding-right: 42px;
+  background-color: #FFFFFF;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364778B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+.input-field:is(select),
+.modern-input:is(select),
+.select-field {
+  min-height: 44px;
+  border-color: #D5E0E8;
+  border-radius: 10px;
+  color: #334155;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:is(select):focus,
+.modern-input:is(select):focus,
+.select-field:focus {
+  outline: none;
+  border-color: #1784A3;
+  box-shadow: 0 0 0 4px rgba(23, 132, 163, 0.12);
+}
+
+.modern-input[type="date"] {
+  min-height: 46px;
+  color: #334155;
+  border-color: #D5E0E8;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #FFFFFF, #F8FBFD);
+  color-scheme: light;
+}
+
+.modern-input[type="date"]:focus {
+  outline: none;
+  border-color: #1784A3;
+  box-shadow: 0 0 0 4px rgba(23, 132, 163, 0.12);
+}
+
+.modern-input[type="date"]::-webkit-calendar-picker-indicator {
+  padding: 6px;
+  border-radius: 7px;
+  background-color: #E8F8FC;
+  color: #087D9D;
+  cursor: pointer;
 }
 
 .btn-primary {
@@ -683,8 +715,78 @@ header h1 {
 
 .form-box-title {
   color: var(--primary-dark);
-  margin-bottom: 12px;
-  font-size: 16px;
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.clients-form {
+  max-width: 920px;
+  margin: 0 auto 35px;
+  padding: 24px 28px;
+  border: 1px solid #DCE7EF;
+  border-top: 3px solid var(--cyan-btn);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBFDFF 100%);
+}
+
+.clients-form-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.clients-form-heading p {
+  margin: 0;
+  color: #64748B;
+  font-size: 13px;
+}
+
+.clients-form-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: #E8F8FC;
+  color: #087D9D;
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.clients-form .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.clients-form .field-label {
+  margin: 0;
+  color: #34465A;
+  font-size: 12px;
+  letter-spacing: 0.025em;
+}
+
+.clients-form .input-field {
+  margin-top: 7px;
+  min-height: 44px;
+  border-color: #D5E0E8;
+  border-radius: 9px;
+}
+
+.clients-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #E8EEF3;
+}
+
+.clients-submit {
+  width: auto;
+  min-width: 148px;
+  padding: 10px 18px;
+  border-radius: 9px;
 }
 
 .section-divider-title {
@@ -711,7 +813,7 @@ header h1 {
 /* --- DEALS VIEW --- */
 .deals-page-container {
   padding: 35px 40px;
-  max-width: 1400px;
+  max-width: 1600px;
   width: 100%;
   box-sizing: border-box;
   margin: 0 auto;
@@ -746,6 +848,23 @@ header h1 {
 @media (max-width: 1024px) {
   .deal-layout {
     grid-template-columns: 1fr;
+  }
+  .deals-container-card {
+    padding: 22px 18px;
+  }
+  .deals-table th,
+  .deals-table td {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+  .deals-table .deal-td-actions .card-actions-group {
+    justify-content: center;
+    gap: 5px;
+  }
+  .deals-table .deal-td-actions .btn-edit-action,
+  .deals-table .deal-td-actions .btn-delete-row {
+    padding: 6px 8px;
+    font-size: 11px;
   }
 }
 
@@ -818,6 +937,27 @@ header h1 {
   font-weight: 700;
   color: #475569;
   text-transform: uppercase;
+}
+
+.field-help,
+.form-guidance {
+  display: block;
+  margin-top: 6px;
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-transform: none;
+}
+
+.form-guidance {
+  margin: -10px 0 18px;
+}
+
+.form-grid .field-label .input-field {
+  display: block;
+  margin-top: 6px;
+  text-transform: none;
 }
 
 .modern-input {
@@ -904,15 +1044,39 @@ header h1 {
 }
 
 .table-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .deals-table {
   width: 100%;
+  min-width: 0;
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
-  min-width: 700px;
+}
+
+.deals-table th:nth-child(1) { width: 17%; }
+.deals-table th:nth-child(2) { width: 19%; }
+.deals-table th:nth-child(3) { width: 12%; }
+.deals-table th:nth-child(4) { width: 16%; }
+.deals-table th:nth-child(5) { width: 13%; }
+.deals-table th:nth-child(6) { width: 23%; }
+
+.deals-table th,
+.deals-table td {
+  overflow-wrap: anywhere;
+}
+
+.deals-table .deal-td-amount,
+.deals-table .deal-td-date,
+.deals-table .deal-td-actions {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.deals-table .stage-badge {
+  white-space: nowrap;
 }
 
 .deals-table thead tr {
@@ -1977,10 +2141,6 @@ header h1 {
 @media (max-width: 640px) {
 
   /* ---- GLOBALS ---- */
-  main {
-    padding: 16px 12px;
-  }
-
   /* ---- LOGIN ---- */
   .login-right-panel {
     padding: 24px 16px;
@@ -2076,7 +2236,8 @@ header h1 {
     -webkit-overflow-scrolling: touch;
   }
   .deals-table {
-    min-width: 560px;
+    min-width: 600px;
+    table-layout: auto;
   }
   .deals-table th,
   .deal-td-company,
@@ -2092,6 +2253,16 @@ header h1 {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
+  }
+
+  .deals-table th,
+  .deals-table td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .deals-table .card-actions-group {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   /* ---- TASKS ---- */

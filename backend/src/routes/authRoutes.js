@@ -7,5 +7,7 @@ router.post('/register', authMiddleware, authMiddleware.verifyRole('admin'), aut
 router.post('/login', authController.login);
 router.get('/me', authMiddleware, authController.me);
 router.get('/users', authMiddleware, authMiddleware.verifyRole('admin'), authController.getUsers);
+router.put('/users/:id', authMiddleware, authMiddleware.verifyRole('admin'), authController.updateUser);
+router.delete('/users/:id', authMiddleware, authMiddleware.verifyRole('admin'), authController.deleteUser);
 
 module.exports = router;

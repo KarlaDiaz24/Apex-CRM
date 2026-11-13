@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import api from '../services/api';
 import HoneycombGraphic from './HoneycombGraphic';
 
@@ -21,7 +21,7 @@ export default function LoginView({ onLoginSuccess }) {
       localStorage.setItem('user', JSON.stringify(userData));
       
       onLoginSuccess(userData);
-    } catch (err) {
+    } catch {
       setError('Correo electrónico o contraseña incorrectos.');
     } finally {
       setLoading(false);
@@ -52,7 +52,7 @@ export default function LoginView({ onLoginSuccess }) {
 
         <div>
           <p className="login-left-description">
-            Plataforma centralizada en la cúspide de la gestión comercial y automatización de cuentas empresariales.
+            Organiza clientes, oportunidades y actividades comerciales en un solo lugar para dar seguimiento a cada relación y hacer crecer tu negocio.
           </p>
           <div className="login-left-copyright">
             © 2026 Turing-IA. Todos los derechos reservados.
@@ -86,31 +86,38 @@ export default function LoginView({ onLoginSuccess }) {
 
           <form onSubmit={handleLogin} className="login-form">
             <div>
-              <label className="login-label">
-                Email address
-              </label>
+              <label className="login-label" htmlFor="login-email">Correo electrónico</label>
               <input 
+                id="login-email"
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 required 
                 className="glass-input"
-                placeholder="admin@turing-crm.com" 
+                placeholder="nombre@empresa.com"
+                maxLength={100}
+                autoComplete="username"
+                title="Ingresa el correo que te asignó el administrador"
               />
+              <small className="field-help">Usa el correo registrado por el administrador.</small>
             </div>
 
             <div>
-              <label className="login-label">
-                Password
-              </label>
+              <label className="login-label" htmlFor="login-password">Contraseña</label>
               <input 
+                id="login-password"
                 type="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
                 className="glass-input"
-                placeholder="••••••••" 
+                placeholder="Mínimo 8 caracteres"
+                minLength={8}
+                maxLength={72}
+                autoComplete="current-password"
+                title="La contraseña debe tener al menos 8 caracteres y no superar 72 bytes en UTF-8"
               />
+              <small className="field-help">Distingue mayúsculas y minúsculas.</small>
             </div>
 
             <button 
@@ -118,7 +125,7 @@ export default function LoginView({ onLoginSuccess }) {
               disabled={loading}
               className="login-submit-btn animated-btn"
             >
-              {loading ? 'Verifying...' : 'Sign in'}
+              {loading ? 'Validando...' : 'Iniciar sesión'}
             </button>
           </form>
 

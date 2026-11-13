@@ -1,6 +1,8 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { logAction } = require('./auditController');
+const { isText, isEmail, isPositiveId, namePattern } = require('../utils/validators');
 
 const publicUser = (user) => ({
     id: user.id,
@@ -20,10 +22,12 @@ const issueToken = (user) => {
 exports.register = async (req, res) => {
     try {
         const { name, email, password } = req.body || {};
-        if (typeof name !== 'string' || !name.trim() || typeof email !== 'string' ||
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-            typeof password !== 'string' || password.length < 8) {
-            return res.status(400).json({ error: 'Nombre, correo válido y contraseña de al menos 8 caracteres son requeridos' });
+        if (!isText(name, { min: 2, max: 100, pattern: namePattern })) {
+            return res.status(400).json({ error: 'El nombre debe tener de 2 a 100 caracteres y usar solo letras, espacios, puntos, apóstrofes o guiones.' });
+        }
+        if (!isEmail(email)) return res.status(400).json({ error: 'Ingresa un correo válido de máximo 100 caracteres.' });
+        if (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password, 'utf8') > 72) {
+            return res.status(400).json({ error: 'La contraseña debe tener entre 8 y 72 bytes.' });
         }
 
         const passwordHash = await bcrypt.hash(password, 12);
@@ -31,6 +35,7 @@ exports.register = async (req, res) => {
             'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
             [name.trim(), email.trim().toLowerCase(), passwordHash, 'user']
         );
+        await logAction(req.user.id, 'CREATE_USER', `El administrador registró al usuario: ${email.trim().toLowerCase()}`);
         res.status(201).json({ message: 'Usuario registrado exitosamente', userId: result.insertId });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'El correo ya está registrado' });
@@ -42,7 +47,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body || {};
-        if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
+        if (!isEmail(email) || typeof password !== 'string' || !password) {
             return res.status(400).json({ error: 'Correo y contraseña son requeridos' });
         }
 
@@ -81,6 +86,61 @@ exports.getUsers = async (req, res) => {
     } catch (error) {
         console.error('Error al consultar usuarios:', error.message);
         res.status(500).json({ error: 'No fue posible consultar usuarios' });
+    }
+};
+
+exports.updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, password } = req.body || {};
+        if (!isPositiveId(id)) return res.status(400).json({ error: 'El usuario indicado no es válido.' });
+        if (!isText(name, { min: 2, max: 100, pattern: namePattern })) {
+            return res.status(400).json({ error: 'El nombre debe tener de 2 a 100 caracteres y usar solo letras, espacios, puntos, apóstrofes o guiones.' });
+        }
+        if (!isEmail(email)) return res.status(400).json({ error: 'Ingresa un correo válido de máximo 100 caracteres.' });
+        if (password !== undefined && password !== '' && (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password, 'utf8') > 72)) {
+            return res.status(400).json({ error: 'La contraseña nueva debe tener al menos 8 y máximo 72 bytes.' });
+        }
+
+        const [targets] = await db.query('SELECT id, role FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1', [id]);
+        if (!targets.length || targets[0].role !== 'user') return res.status(404).json({ error: 'No se encontró un agente activo para editar.' });
+        const normalizedEmail = email.trim().toLowerCase();
+        const [emailOwners] = await db.query('SELECT id FROM users WHERE email = ? AND id <> ? AND deleted_at IS NULL LIMIT 1', [normalizedEmail, id]);
+        if (emailOwners.length) return res.status(409).json({ error: 'Ese correo ya está registrado en otra cuenta.' });
+
+        const values = [name.trim(), normalizedEmail];
+        let query = 'UPDATE users SET name = ?, email = ?';
+        if (password) {
+            query += ', password = ?';
+            values.push(await bcrypt.hash(password, 12));
+        }
+        query += " WHERE id = ? AND role = 'user' AND deleted_at IS NULL";
+        values.push(id);
+        await db.query(query, values);
+        await logAction(req.user.id, 'UPDATE_USER', `El administrador actualizó el agente con ID: ${id}`);
+        res.json({ message: 'Agente actualizado correctamente' });
+    } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Ese correo ya está registrado en otra cuenta.' });
+        console.error('Error al actualizar agente:', error.message);
+        res.status(500).json({ error: 'No fue posible actualizar el agente' });
+    }
+};
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!isPositiveId(id)) return res.status(400).json({ error: 'El usuario indicado no es válido.' });
+        if (Number(id) === Number(req.user.id)) return res.status(400).json({ error: 'No puedes desactivar tu propia cuenta.' });
+        const [result] = await db.query(
+            "UPDATE users SET deleted_at = NOW() WHERE id = ? AND role = 'user' AND deleted_at IS NULL",
+            [id]
+        );
+        if (!result.affectedRows) return res.status(404).json({ error: 'No se encontró un agente activo para desactivar.' });
+        await logAction(req.user.id, 'SOFT_DELETE_USER', `El administrador desactivó al agente con ID: ${id}`);
+        res.json({ message: 'Agente desactivado correctamente' });
+    } catch (error) {
+        console.error('Error al desactivar agente:', error.message);
+        res.status(500).json({ error: 'No fue posible desactivar el agente' });
     }
 };
 

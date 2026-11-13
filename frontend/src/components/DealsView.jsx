@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../services/api';
 import Modal from './Modal';
 
@@ -41,7 +41,12 @@ export default function DealsView() {
   };
 
   useEffect(() => {
-    fetchData();
+    Promise.all([api.get('/deals'), api.get('/clients')])
+      .then(([dealsRes, clientsRes]) => {
+        setDeals(dealsRes.data);
+        setClients(clientsRes.data);
+      })
+      .catch((error) => console.error('Error al cargar datos de deals:', error));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -81,7 +86,7 @@ export default function DealsView() {
         isOpen: true,
         type: 'danger',
         title: 'Error al Registrar',
-        message: 'No fue posible crear la oportunidad de venta. Intenta nuevamente.',
+        message: error.response?.data?.error || 'No fue posible crear la oportunidad. Verifica los datos e inténtalo de nuevo.',
         confirmText: 'Cerrar',
         showCancel: false,
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
@@ -119,11 +124,12 @@ export default function DealsView() {
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
       });
     } catch (error) {
+      console.error('Error al actualizar deal:', error);
       setModalConfig({
         isOpen: true,
         type: 'danger',
         title: 'Error al Actualizar',
-        message: 'Ocurrió un error al actualizar los datos de la oportunidad.',
+        message: error.response?.data?.error || 'No fue posible actualizar la oportunidad. Verifica los datos e inténtalo de nuevo.',
         confirmText: 'Cerrar',
         showCancel: false,
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
@@ -136,8 +142,8 @@ export default function DealsView() {
       isOpen: true,
       type: 'danger',
       title: 'Eliminar Oportunidad',
-      message: `¿Estás seguro de eliminar permanentemente la oportunidad "${deal.title}"? Esta acción removerá el registro del pipeline comercial.`,
-      confirmText: 'Sí, Eliminar',
+      message: `¿Deseas retirar la oportunidad "${deal.title}" del pipeline activo? El registro se conservará en la base de datos como eliminado.`,
+      confirmText: 'Eliminar del pipeline',
       cancelText: 'Cancelar',
       showCancel: true,
       onConfirm: () => executeDelete(deal.id, deal.title)
@@ -151,13 +157,14 @@ export default function DealsView() {
       setModalConfig({
         isOpen: true,
         type: 'success',
-        title: '¡Oportunidad Eliminada!',
-        message: `La oportunidad "${title}" ha sido eliminada del pipeline.`,
+        title: 'Oportunidad retirada',
+        message: `La oportunidad "${title}" ya no aparece en el pipeline activo.`,
         confirmText: 'Aceptar',
         showCancel: false,
         onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
       });
     } catch (error) {
+      console.error('Error al eliminar deal:', error);
       setModalConfig({
         isOpen: true,
         type: 'danger',
@@ -225,6 +232,7 @@ export default function DealsView() {
                   <option key={c.id} value={c.id}>{c.company_name || c.name}</option>
                 ))}
               </select>
+              <small className="field-help">Solo puedes asociar la oportunidad a un cliente activo.</small>
             </div>
 
             <div>
@@ -234,6 +242,10 @@ export default function DealsView() {
               <input 
                 type="text" 
                 placeholder="Ej. Implementación Enterprise CRM" 
+                minLength={2}
+                maxLength={150}
+                pattern="[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 .,&amp;'()/#:+-]*"
+                title="Usa letras, números, espacios y estos signos: . , &amp; ' ( ) / # : + -"
                 value={form.title} 
                 onChange={(e) => setForm({...form, title: e.target.value})} 
                 required 
@@ -248,11 +260,15 @@ export default function DealsView() {
               <input 
                 type="number" 
                 step="0.01" 
+                min="0"
+                max="99999999.99"
+                inputMode="decimal"
                 placeholder="0.00" 
                 value={form.amount} 
                 onChange={(e) => setForm({...form, amount: e.target.value})} 
                 className="modern-input" 
               />
+              <small className="field-help">Opcional. De 0 a 99,999,999.99; máximo 2 decimales.</small>
             </div>
 
             <div>
@@ -283,6 +299,7 @@ export default function DealsView() {
                 onChange={(e) => setForm({...form, closing_date: e.target.value})} 
                 className="modern-input" 
               />
+              <small className="field-help">Opcional. No puede ser una fecha pasada.</small>
             </div>
 
             <button type="submit" disabled={loading} className="btn-action">
@@ -401,6 +418,10 @@ export default function DealsView() {
             <input 
               type="text" 
               className="modern-input" 
+              minLength={2}
+              maxLength={150}
+              pattern="[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 .,&amp;'()/#:+-]*"
+              title="Usa letras, números, espacios y estos signos: . , &amp; ' ( ) / # : + -"
               value={editForm.title} 
               onChange={(e) => setEditForm({...editForm, title: e.target.value})} 
               required 
@@ -411,6 +432,9 @@ export default function DealsView() {
             <input 
               type="number" 
               step="0.01" 
+              min="0"
+              max="99999999.99"
+              inputMode="decimal"
               className="modern-input" 
               value={editForm.amount} 
               onChange={(e) => setEditForm({...editForm, amount: e.target.value})} 
@@ -434,6 +458,7 @@ export default function DealsView() {
             <label className="field-label">Fecha Estimada de Cierre</label>
             <input 
               type="date" 
+              min={today}
               className="modern-input" 
               value={editForm.closing_date} 
               onChange={(e) => setEditForm({...editForm, closing_date: e.target.value})} 
