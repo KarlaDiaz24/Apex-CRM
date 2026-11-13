@@ -5,26 +5,30 @@ import DealsView from './components/DealsView';
 import TasksView from './components/TasksView';
 import TrashView from './components/TrashView';
 import AuditView from './components/AuditView';
+import api from './services/api';
 
 function App() {
   const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('clients');
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      // Si un usuario normal intenta ver algo restringido, lo mandamos a clientes por defecto
-      if (parsedUser.role !== 'admin' && (currentView === 'trash' || currentView === 'audit')) {
-        setCurrentView('clients');
-      }
-    }
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    api.get('/auth/me')
+      .then(({ data }) => {
+        setUser(data.user);
+        if (data.user.role !== 'admin') setCurrentView('clients');
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+      });
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
-    localStorage.removeItem('userRole');
+    localStorage.removeItem('token');
     setUser(null);
     setCurrentView('clients');
   };

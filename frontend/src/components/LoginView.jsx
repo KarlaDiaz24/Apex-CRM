@@ -17,8 +17,8 @@ export default function LoginView({ onLoginSuccess }) {
       const res = await api.post('/auth/login', { email, password });
       const userData = res.data.user;
       
+      localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('userRole', userData.role);
       
       onLoginSuccess(userData);
     } catch (err) {

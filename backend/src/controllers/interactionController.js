@@ -19,10 +19,10 @@ exports.getInteractions = async (req, res) => {
 // Crear una nueva interacción / bitácora (POST)
 exports.createInteraction = async (req, res) => {
     try {
-        const { client_id, user_id, type, notes } = req.body;
+        const { client_id, type, notes } = req.body;
         const [result] = await db.query(
             'INSERT INTO interactions (client_id, user_id, type, notes) VALUES (?, ?, ?, ?)',
-            [client_id, user_id, type, notes]
+            [client_id, req.user.id, type, notes]
         );
         res.status(201).json({ message: 'Interacción registrada exitosamente', id: result.insertId });
     } catch (error) {
@@ -34,7 +34,7 @@ exports.createInteraction = async (req, res) => {
 exports.deleteInteraction = async (req, res) => {
     try {
         const { id } = req.params;
-        await db.query('UPDATE interactions SET deleted_at = NOW() WHERE id = ?', [id]);
+        await db.query('UPDATE interactions SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL', [id]);
         res.json({ message: 'Interacción eliminada correctamente' });
     } catch (error) {
         res.status(500).json({ error: error.message });

@@ -144,7 +144,7 @@ export default function ClientsView() {
     }
   };
 
-  const activos = clients.filter(c => c.status === 'Activo').length;
+  const activos = clients.filter(c => c.status === 'Cliente').length;
   const nuevos = clients.filter(c => c.status === 'Nuevo').length;
 
   return (
@@ -182,8 +182,9 @@ export default function ClientsView() {
             <input className="input-field" type="text" placeholder="Teléfono" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} />
             <select className="input-field" value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}>
               <option value="Nuevo">Estado: Nuevo</option>
-              <option value="En Proceso">Estado: En Proceso</option>
-              <option value="Activo">Estado: Activo</option>
+              <option value="En Contacto">Estado: En Contacto</option>
+              <option value="Cliente">Estado: Cliente</option>
+              <option value="Cerrado">Estado: Cerrado</option>
             </select>
             <button type="submit" className="btn-primary">Guardar Cliente</button>
           </div>
@@ -302,8 +303,9 @@ export default function ClientsView() {
               onChange={(e) => setEditForm({...editForm, status: e.target.value})}
             >
               <option value="Nuevo">Nuevo</option>
-              <option value="En Proceso">En Proceso</option>
-              <option value="Activo">Activo</option>
+              <option value="En Contacto">En Contacto</option>
+              <option value="Cliente">Cliente</option>
+              <option value="Cerrado">Cerrado</option>
             </select>
           </div>
         </form>

@@ -48,7 +48,7 @@ exports.updateDeal = async (req, res) => {
 exports.deleteDeal = async (req, res) => {
     try {
         const { id } = req.params;
-        await db.query('UPDATE deals SET deleted_at = NOW() WHERE id = ?', [id]);
+        await db.query('UPDATE deals SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL', [id]);
         res.json({ message: 'Oportunidad eliminada lógicamente' });
     } catch (error) {
         res.status(500).json({ error: error.message });
