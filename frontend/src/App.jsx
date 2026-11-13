@@ -122,7 +122,7 @@ function App() {
         {currentView === 'clients' && <ClientsView />}
         {currentView === 'deals' && <DealsView />}
         {currentView === 'interactions' && <InteractionsView user={user} />}
-        {currentView === 'tasks' && <TasksView />}
+        {currentView === 'tasks' && <TasksView user={user} />}
         {currentView === 'trash' && user.role === 'admin' && <TrashView />}
         {currentView === 'audit' && user.role === 'admin' && <AuditView />}
         {currentView === 'users' && user.role === 'admin' && <UsersView />}

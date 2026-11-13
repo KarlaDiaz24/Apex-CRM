@@ -41,6 +41,37 @@ exports.createInteraction = async (req, res) => {
     }
 };
 
+exports.updateInteraction = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { client_id, type, notes } = req.body || {};
+        if (!isPositiveId(id)) return res.status(400).json({ error: 'La interacción indicada no es válida.' });
+        if (!isPositiveId(client_id)) return res.status(400).json({ error: 'Selecciona un cliente válido.' });
+        if (!interactionTypes.has(type)) return res.status(400).json({ error: 'Selecciona un tipo de interacción válido.' });
+        if (typeof notes !== 'string' || !notes.trim() || notes.length > 5000) {
+            return res.status(400).json({ error: 'Las notas son obligatorias y deben tener máximo 5,000 caracteres.' });
+        }
+        const [clients] = await db.query('SELECT id FROM clients WHERE id = ? AND deleted_at IS NULL', [client_id]);
+        if (!clients.length) return res.status(400).json({ error: 'El cliente seleccionado no existe o está en la papelera.' });
+        const ownerClause = req.user.role === 'admin' ? '' : ' AND user_id = ?';
+        const params = [Number(client_id), type, notes.trim(), id];
+        if (req.user.role !== 'admin') params.push(req.user.id);
+        const [result] = await db.query(
+            `UPDATE interactions SET client_id = ?, type = ?, notes = ? WHERE id = ? AND deleted_at IS NULL${ownerClause}`,
+            params
+        );
+        if (!result.affectedRows) {
+            const [accessible] = await db.query(`SELECT id FROM interactions WHERE id = ? AND deleted_at IS NULL${ownerClause}`, [id, ...(req.user.role === 'admin' ? [] : [req.user.id])]);
+            if (!accessible.length) return res.status(404).json({ error: 'No se encontró una interacción disponible para actualizar.' });
+        }
+        await logAction(req.user.id, 'UPDATE_INTERACTION', `Se actualizó la interacción con ID: ${id}`);
+        res.json({ message: 'Interacción actualizada correctamente' });
+    } catch (error) {
+        console.error('Error al actualizar interacción:', error.message);
+        res.status(500).json({ error: 'No fue posible actualizar la interacción' });
+    }
+};
+
 // Eliminación lógica de una interacción (DELETE)
 exports.deleteInteraction = async (req, res) => {
     try {

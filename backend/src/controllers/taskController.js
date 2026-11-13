@@ -35,12 +35,23 @@ exports.getTasks = async (req, res) => {
 // Crear una nueva tarea (POST)
 exports.createTask = async (req, res) => {
     try {
-        let { client_id, title, description, due_date } = req.body || {};
-        const user_id = req.user.id;
+        let { client_id, title, description, due_date, user_id } = req.body || {};
+        if (req.user.role !== 'admin') {
+            user_id = req.user.id;
+        } else if (user_id === undefined || user_id === null || user_id === '') {
+            user_id = req.user.id;
+        } else if (!isPositiveId(user_id)) {
+            return res.status(400).json({ error: 'Selecciona un agente válido para asignar la tarea.' });
+        }
         const validationError = validateTask({ title, description, due_date });
         if (validationError) return res.status(400).json({ error: validationError });
+
+        if (req.user.role === 'admin' && Number(user_id) !== Number(req.user.id)) {
+            const [assignees] = await db.query("SELECT id FROM users WHERE id = ? AND role = 'user' AND deleted_at IS NULL", [user_id]);
+            if (!assignees.length) return res.status(400).json({ error: 'El agente seleccionado no existe o está desactivado.' });
+        }
         
-        // El usuario asociado sale del JWT; un client_id vacío deja la tarea sin cliente.
+        // El rol user siempre queda asignado a sí mismo; solo admin puede elegir responsable.
         if (!client_id || client_id === '') {
             client_id = null;
         } else {
@@ -66,22 +77,41 @@ exports.updateTask = async (req, res) => {
     try {
         const { id } = req.params;
         if (!isPositiveId(id)) return res.status(400).json({ error: 'La tarea indicada no es válida.' });
-        const { title, description, due_date, completed } = req.body || {};
+        const { title, description, due_date, completed, client_id, user_id } = req.body || {};
         const validationError = validateTask({ title, description, due_date });
         if (validationError) return res.status(400).json({ error: validationError });
         if (![true, false, 0, 1].includes(completed)) return res.status(400).json({ error: 'Indica si la tarea está completada.' });
         const ownerClause = req.user.role === 'admin' ? '' : ' AND user_id = ?';
         const accessParams = [id];
         if (req.user.role !== 'admin') accessParams.push(req.user.id);
-        const [accessibleTasks] = await db.query(`SELECT id FROM tasks WHERE id = ? AND deleted_at IS NULL${ownerClause}`, accessParams);
+        const [accessibleTasks] = await db.query(`SELECT id, client_id, user_id FROM tasks WHERE id = ? AND deleted_at IS NULL${ownerClause}`, accessParams);
         if (!accessibleTasks.length) return res.status(404).json({ error: 'No se encontró una tarea disponible para actualizar.' });
-        const params = [title.trim(), description || '', due_date, completed, id];
+        const currentTask = accessibleTasks[0];
+        let nextClientId = client_id === undefined ? currentTask.client_id : client_id;
+        let nextUserId = currentTask.user_id;
+
+        if (nextClientId === '') nextClientId = null;
+        if (nextClientId !== null) {
+            if (!isPositiveId(nextClientId)) return res.status(400).json({ error: 'Selecciona un cliente válido o deja el campo vacío.' });
+            const [clients] = await db.query('SELECT id FROM clients WHERE id = ? AND deleted_at IS NULL', [nextClientId]);
+            if (!clients.length) return res.status(400).json({ error: 'El cliente seleccionado no existe o está en la papelera.' });
+        }
+
+        if (req.user.role === 'admin' && user_id !== undefined && user_id !== null && user_id !== '') {
+            if (!isPositiveId(user_id)) return res.status(400).json({ error: 'Selecciona un agente válido.' });
+            if (Number(user_id) !== Number(req.user.id) && Number(user_id) !== Number(currentTask.user_id)) {
+                const [assignees] = await db.query("SELECT id FROM users WHERE id = ? AND role = 'user' AND deleted_at IS NULL", [user_id]);
+                if (!assignees.length) return res.status(400).json({ error: 'El agente seleccionado no existe o está desactivado.' });
+            }
+            nextUserId = Number(user_id);
+        }
+        const params = [title.trim(), description || '', due_date, completed, nextClientId, nextUserId, id];
         if (req.user.role !== 'admin') params.push(req.user.id);
         await db.query(
-            `UPDATE tasks SET title = ?, description = ?, due_date = ?, completed = ? WHERE id = ? AND deleted_at IS NULL${ownerClause}`,
+            `UPDATE tasks SET title = ?, description = ?, due_date = ?, completed = ?, client_id = ?, user_id = ? WHERE id = ? AND deleted_at IS NULL${ownerClause}`,
             params
         );
-        await logAction(req.user.id, 'UPDATE_TASK', `Se actualizó la tarea con ID: ${id}`);
+        await logAction(req.user.id, 'UPDATE_TASK', `Se actualizó la tarea con ID: ${id}; responsable ID: ${nextUserId}`);
         res.json({ message: 'Tarea actualizada correctamente' });
     } catch (error) {
         res.status(500).json({ error: error.message });

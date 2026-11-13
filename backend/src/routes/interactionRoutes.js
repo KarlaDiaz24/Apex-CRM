@@ -5,6 +5,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 
 router.get('/', authMiddleware, interactionController.getInteractions);
 router.post('/', authMiddleware, interactionController.createInteraction);
+router.put('/:id', authMiddleware, interactionController.updateInteraction);
 router.delete('/:id', authMiddleware, interactionController.deleteInteraction);
 
 module.exports = router;

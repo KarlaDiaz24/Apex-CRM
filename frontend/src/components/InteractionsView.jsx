@@ -19,6 +19,10 @@ export default function InteractionsView({ user }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [modal, setModal] = useState(null);
+  const [editingInteraction, setEditingInteraction] = useState(null);
+  const [editForm, setEditForm] = useState({ client_id: '', type: 'Llamada', notes: '' });
+  const [editError, setEditError] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -81,6 +85,28 @@ export default function InteractionsView({ user }) {
     },
   });
 
+  const openEdit = (interaction) => {
+    setEditingInteraction(interaction);
+    setEditForm({ client_id: String(interaction.client_id), type: interaction.type, notes: interaction.notes || '' });
+    setEditError('');
+  };
+
+  const saveEdit = async () => {
+    if (!editingInteraction) return;
+    setEditSaving(true);
+    setEditError('');
+    try {
+      await api.put(`/interactions/${editingInteraction.id}`, { ...editForm, client_id: Number(editForm.client_id) });
+      setEditingInteraction(null);
+      await refresh();
+      setModal({ type: 'success', title: 'Interacción actualizada', message: 'Los cambios se guardaron correctamente.' });
+    } catch (requestError) {
+      setEditError(requestError.response?.data?.error || 'No fue posible actualizar la interacción.');
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   return (
     <section className="space-y-6 sm:space-y-8" aria-labelledby="interactions-title">
       <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand-navy via-brand-blue to-sky-700 px-5 py-7 text-white shadow-xl shadow-brand-navy/15 sm:px-8 sm:py-9">
@@ -128,7 +154,7 @@ export default function InteractionsView({ user }) {
           ) : (
             <ul className="divide-y divide-slate-100">
               {interactions.map((interaction) => {
-                const canDelete = user.role === 'admin' || Number(interaction.user_id) === Number(user.id);
+                const canManage = user.role === 'admin' || Number(interaction.user_id) === Number(user.id);
                 return <li key={interaction.id} className="flex flex-col gap-3 p-5 transition hover:bg-slate-50/70 sm:flex-row sm:items-start sm:justify-between sm:px-6">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -139,13 +165,35 @@ export default function InteractionsView({ user }) {
                     <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">{interaction.notes}</p>
                     <p className="mt-2 text-xs text-slate-500">Registró: {interaction.user_name || 'Usuario'}</p>
                   </div>
-                  {canDelete && <button type="button" onClick={() => requestDelete(interaction)} className="shrink-0 self-start rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-50">Eliminar</button>}
+                  {canManage && <div className="flex shrink-0 gap-2 self-start">
+                    <button type="button" onClick={() => openEdit(interaction)} className="rounded-lg border border-sky-200 px-3 py-1.5 text-xs font-bold text-sky-700 transition hover:bg-sky-50">Editar</button>
+                    <button type="button" onClick={() => requestDelete(interaction)} className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-50">Eliminar</button>
+                  </div>}
                 </li>;
               })}
             </ul>
           )}
         </div>
       </div>
+
+      <Modal isOpen={Boolean(editingInteraction)} type="edit" title="Editar interacción" confirmText={editSaving ? 'Guardando...' : 'Guardar cambios'} cancelText="Cancelar" showCancel onConfirm={saveEdit} onClose={() => setEditingInteraction(null)}>
+        <div className="space-y-4">
+          <label className="block text-xs font-bold uppercase tracking-wide text-slate-600">Cliente
+            <select required value={editForm.client_id} onChange={(event) => setEditForm({ ...editForm, client_id: event.target.value })} className="select-field mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium normal-case text-slate-700 outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10">
+              {clients.map((client) => <option key={client.id} value={client.id}>{client.company_name} · {client.contact_name}</option>)}
+            </select>
+          </label>
+          <label className="block text-xs font-bold uppercase tracking-wide text-slate-600">Tipo de actividad
+            <select value={editForm.type} onChange={(event) => setEditForm({ ...editForm, type: event.target.value })} className="select-field mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium normal-case text-slate-700 outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10">
+              {interactionTypes.map((interactionType) => <option key={interactionType} value={interactionType}>{interactionType}</option>)}
+            </select>
+          </label>
+          <label className="block text-xs font-bold uppercase tracking-wide text-slate-600">Notas
+            <textarea required maxLength={5000} rows={5} value={editForm.notes} onChange={(event) => setEditForm({ ...editForm, notes: event.target.value })} className="mt-2 w-full resize-y rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal normal-case text-slate-700 outline-none transition focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10" />
+          </label>
+          {editError && <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700" role="alert">{editError}</p>}
+        </div>
+      </Modal>
 
       <Modal isOpen={Boolean(modal)} type={modal?.type} title={modal?.title} message={modal?.message} confirmText={modal?.confirmText || 'Aceptar'} cancelText="Cancelar" showCancel={modal?.showCancel} onConfirm={async () => { const action = modal?.onConfirm; if (action) await action(); else setModal(null); }} onCancel={() => setModal(null)} onClose={() => setModal(null)} />
     </section>

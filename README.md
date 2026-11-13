@@ -196,10 +196,11 @@ Todas las rutas salvo `POST /api/auth/login` requieren `Authorization: Bearer <J
 | GET | `/api/clients/deleted` | Admin | Consulta la papelera de clientes |
 | PUT | `/api/clients/restore/:id` | Admin | Restaura un cliente |
 | GET, POST, PUT, DELETE | `/api/deals` y `/api/deals/:id` | Admin y user | CRUD de oportunidades; DELETE lógico |
-| GET, POST | `/api/tasks` | Admin y user | Admin consulta todas; cada user consulta y crea sus tareas |
-| PUT, DELETE | `/api/tasks/:id` | Admin y user | Admin gestiona todas; cada user gestiona las propias |
+| GET, POST | `/api/tasks` | Admin y user | Admin consulta todas y asigna tareas a agentes activos; cada user consulta y crea sus tareas para sí mismo |
+| PUT, DELETE | `/api/tasks/:id` | Admin y user | Admin edita y gestiona todas; cada user edita y gestiona las propias |
 | PUT | `/api/tasks/:id/complete` | Admin y user | Completa una tarea activa propia o, como admin, cualquier tarea |
 | GET, POST | `/api/interactions` | Admin y user | Consultar y crear interacciones |
+| PUT | `/api/interactions/:id` | Admin y user | Admin edita cualquiera; cada user edita las propias |
 | DELETE | `/api/interactions/:id` | Admin y user | Admin o autor elimina lógicamente |
 | GET | `/api/audit` | Admin | Consulta auditoría |
 
